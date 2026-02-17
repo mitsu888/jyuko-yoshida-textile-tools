@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>先染めシミュレーター V2 | 色织模拟器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "Noto Sans JP", sans-serif; }
+    .color-swatch { transition: transform 0.1s; }
+    .color-swatch:hover { transform: scale(1.1); }
+    .tooltip { position: relative; }
+    .tooltip:hover::after {
+      content: attr(data-tip);
+      position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+      background: #1f2937; color: rgb(198, 85, 85); padding: 4px 8px; border-radius: 4px;
+      font-size: 12px; white-space: nowrap; z-index: 50;
+    }
+    @media print { .no-print { display: none !important; } }
+  </style>
+</head>
+<body class="bg-neutral-50 text-neutral-900 min-h-screen">
+
+<div id="app" class="max-w-7xl mx-auto p-4"></div>
+
+<script>
+// ============================================================
+// Pantoneデータベース（近似色）
+// ============================================================
+const PANTONE_DB = [
+  { code: '19-4052', name: 'Classic Blue', hex: '#0f4c81' },
+  { code: '17-5104', name: 'Ultimate Gray', hex: '#939597' },
+  { code: '13-0647', name: 'Illuminating', hex: '#f5df4d' },
+  { code: '18-4548', name: 'Ibiza Blue', hex: '#2a6fa1' },
+  { code: '17-1463', name: 'Tangerine Tango', hex: '#dd4124' },
+  { code: '15-5519', name: 'Turquoise', hex: '#45b5aa' },
+  { code: '18-3943', name: 'Blue Iris', hex: '#5a5b9f' },
+  { code: '19-1664', name: 'True Red', hex: '#bf1932' },
+  { code: '14-0756', name: 'Primrose Yellow', hex: '#f6d155' },
+  { code: '15-1247', name: 'Apricot', hex: '#f5b895' },
+  { code: '19-4024', name: 'Navy Blazer', hex: '#282d3c' },
+  { code: '11-0601', name: 'Bright White', hex: '#f4f5f0' },
+  { code: '19-0303', name: 'Jet Black', hex: '#2b2926' },
+  { code: '17-1456', name: 'Tigerlily', hex: '#e2583e' },
+  { code: '15-0343', name: 'Greenery', hex: '#88b04b' },
+  { code: '18-1750', name: 'Viva Magenta', hex: '#be3455' },
+  { code: '13-1023', name: 'Peach Fuzz', hex: '#ffbe98' },
+  { code: '16-1546', name: 'Living Coral', hex: '#ff6f61' },
+  { code: '19-4052', name: 'Classic Blue', hex: '#0f4c81' },
+  { code: '18-3838', name: 'Ultra Violet', hex: '#5f4b8b' },
+  { code: '15-1520', name: 'Rose Quartz', hex: '#f7cac9' },
+  { code: '15-3919', name: 'Serenity', hex: '#92a8d1' },
+  { code: '18-1438', name: 'Marsala', hex: '#955251' },
+  { code: '17-5641', name: 'Emerald', hex: '#009473' },
+  { code: '14-4811', name: 'Aqua Sky', hex: '#7bc4c4' },
+];
+
+// 2025年トレンドカラー
+const TREND_COLORS_2025 = {
+  ss: [ // 春夏
+    { hex: '#ffbe98', name: { ja: 'ピーチファズ', zh: '蜜桃色' }, pantone: '13-1023' },
+    { hex: '#7bc4c4', name: { ja: 'アクアスカイ', zh: '水蓝色' }, pantone: '14-4811' },
+    { hex: '#f5df4d', name: { ja: 'イルミネイティング', zh: '亮黄色' }, pantone: '13-0647' },
+    { hex: '#88b04b', name: { ja: 'グリーナリー', zh: '草木绿' }, pantone: '15-0343' },
+    { hex: '#f7cac9', name: { ja: 'ローズクォーツ', zh: '粉晶色' }, pantone: '15-1520' },
+    { hex: '#92a8d1', name: { ja: 'セレニティ', zh: '宁静蓝' }, pantone: '15-3919' },
+  ],
+  aw: [ // 秋冬
+    { hex: '#955251', name: { ja: 'マルサラ', zh: '玛萨拉酒红' }, pantone: '18-1438' },
+    { hex: '#5f4b8b', name: { ja: 'ウルトラバイオレット', zh: '紫外光色' }, pantone: '18-3838' },
+    { hex: '#009473', name: { ja: 'エメラルド', zh: '祖母绿' }, pantone: '17-5641' },
+    { hex: '#282d3c', name: { ja: 'ネイビーブレザー', zh: '海军蓝' }, pantone: '19-4024' },
+    { hex: '#be3455', name: { ja: 'ビバマゼンタ', zh: '非凡洋红' }, pantone: '18-1750' },
+    { hex: '#939597', name: { ja: 'アルティメットグレー', zh: '极致灰' }, pantone: '17-5104' },
+  ]
+};
+
+// ============================================================
+// 用語辞典
+// ============================================================
+const GLOSSARY = {
+  ja: {
+    '経糸': '織機に縦方向に張られる糸。英語ではWarp。密度はEPI（1インチあたりの本数）で表す。',
+    '緯糸': '織機で左右に打ち込まれる糸。英語ではWeft/Filling。密度はPPI（1インチあたりの本数）で表す。',
+    '平織': '経糸と緯糸が1本ずつ交互に交差する最も基本的な織り方。丈夫で通気性が良い。',
+    '綾織': '経糸または緯糸が2本以上連続して浮く織り方。斜めの畝（ツイル）が特徴。',
+    '朱子織': '経糸または緯糸が長く浮いて光沢を出す織り方。サテンとも呼ばれる。',
+    'EPI': 'Ends Per Inch。1インチあたりの経糸本数。数値が大きいほど高密度。',
+    'PPI': 'Picks Per Inch。1インチあたりの緯糸本数。数値が大きいほど高密度。',
+    'GSM': 'Grams per Square Meter。1平方メートルあたりのグラム数。生地の厚さ・重さの指標。',
+    '番手': '糸の太さを表す単位。綿はNe（英式番手）、毛はNm（メートル番手）を使用。数値が大きいほど細い。',
+    'コーマ糸': '短繊維を除去した高品質な糸。毛羽が少なく光沢がある。',
+    'カード糸': '標準的な紡績方法で作られた糸。コーマ糸より安価。',
+    'マーセライズ': 'アルカリ処理で綿に光沢と強度を与える加工。シルケット加工とも。',
+    'デニール': '9000メートルあたりのグラム数。フィラメント糸の太さの単位。数値が大きいほど太い。',
+  },
+  zh: {
+    '经纱': '织机上纵向张紧的纱线，英文为Warp。密度用EPI（每英寸根数）表示。',
+    '纬纱': '织机上横向打入的纱线，英文为Weft。密度用PPI（每英寸根数）表示。',
+    '平纹': '经纬纱一上一下交替交织的最基本织法，结实透气。',
+    '斜纹': '经纱或纬纱连续浮起2根以上的织法，表面呈斜向纹路。',
+    '缎纹': '经纱或纬纱长浮线形成光泽的织法，也叫色丁。',
+    'EPI': 'Ends Per Inch，每英寸经纱根数，数值越大密度越高。',
+    'PPI': 'Picks Per Inch，每英寸纬纱根数，数值越大密度越高。',
+    'GSM': 'Grams per Square Meter，每平方米克重，表示面料厚度和重量。',
+    '支数': '表示纱线粗细的单位，棉用英支Ne，毛用公支Nm。数值越大越细。',
+    '精梳纱': '去除短纤维的高品质纱线，毛羽少有光泽。',
+    '普梳纱': '标准纺纱方法生产的纱线，比精梳纱便宜。',
+    '丝光处理': '碱处理使棉纤维获得光泽和强度的加工。',
+    '旦尼尔': '9000米长度的克重，长丝纱粗细单位，数值越大越粗。',
+  }
+};
+
+// ============================================================
+// 類似生地データベース
+// ============================================================
+const SIMILAR_FABRICS = [
+  { name: { ja: 'オックスフォードシャツ地', zh: '牛津衬衫布' }, weave: 'oxford', yarn: 'cotton', epiRange: [80, 120], gsmRange: [120, 180] },
+  { name: { ja: 'ブロードクロス', zh: '府绸' }, weave: 'plain', yarn: 'cotton', epiRange: [100, 140], gsmRange: [100, 150] },
+  { name: { ja: 'デニム 12oz', zh: '12盎司牛仔布' }, weave: 'denim', yarn: 'cotton', epiRange: [60, 80], gsmRange: [350, 420] },
+  { name: { ja: 'デニム 8oz', zh: '8盎司牛仔布' }, weave: 'denim', yarn: 'cotton', epiRange: [70, 90], gsmRange: [250, 300] },
+  { name: { ja: 'ギャバジン', zh: '华达呢' }, weave: 'gabardine', yarn: 'wool', epiRange: [80, 120], gsmRange: [200, 280] },
+  { name: { ja: 'サテン', zh: '色丁' }, weave: 'satin_5', yarn: 'silk', epiRange: [150, 200], gsmRange: [80, 150] },
+  { name: { ja: 'ポロピケ', zh: '珠地Polo布' }, weave: 'pique', yarn: 'cotton', epiRange: [60, 80], gsmRange: [180, 220] },
+  { name: { ja: 'ツイルチノ', zh: '斜纹卡其布' }, weave: 'twill_2_1', yarn: 'cotton', epiRange: [100, 130], gsmRange: [200, 280] },
+  { name: { ja: 'ヘリンボーンジャケット地', zh: '人字纹夹克布' }, weave: 'herringbone', yarn: 'wool', epiRange: [70, 100], gsmRange: [250, 350] },
+  { name: { ja: 'シアサッカー', zh: '泡泡纱' }, weave: 'seersucker', yarn: 'cotton', epiRange: [80, 100], gsmRange: [100, 150] },
+];
+
+// ============================================================
+// 多言語対応テキスト
+// ============================================================
+const LANG = {
+  ja: {
+    title: '先染めシミュレーター',
+    subtitle: '織り組織 × 糸 × 色のリアルタイムプレビュー',
+    tabs: { design: 'デザイン', weave: '織り組織', yarn: '糸選択', specs: '規格', tools: 'ツール' },
+    pattern: 'パターン',
+    patterns: { check: 'チェック', stripe: 'ストライプ', solid: '無地' },
+    warpColor: '経糸の色',
+    weftColor: '緯糸の色',
+    pitch: '柄ピッチ',
+    zoom: 'ズーム',
+    weaveCategory: '織りカテゴリ',
+    selectWeave: '織り組織を選択',
+    yarnCategory: '素材カテゴリ',
+    warpYarn: '経糸',
+    weftYarn: '緯糸',
+    epi: '経糸密度 (EPI)',
+    ppi: '緯糸密度 (PPI)',
+    gsm: '目付',
+    fabricSummary: '生地構成サマリー',
+    weaveType: '織り組織',
+    difficulty: '難易度',
+    savePng: 'PNG保存',
+    riskAnalysis: 'リスク分析',
+    risks: '件のリスク',
+    sellingPoints: '訴求ポイント',
+    preview: 'プレビュー',
+    quickColors: 'クイックカラー',
+    noRisk: 'リスクなし',
+    specSheet: '仕様書出力',
+    compare: '比較モード',
+    glossary: '用語辞典',
+    pantone: 'Pantone変換',
+    season: '季節判定',
+    similar: '類似生地',
+    trend: 'トレンドカラー',
+    random: 'ランダム生成',
+    springSum: '春夏向き',
+    autumnWin: '秋冬向き',
+    allSeason: 'オールシーズン',
+    characteristics: {
+      durability: '耐久', drape: 'ドレープ', breathability: '通気',
+      wrinkleResistance: '防シワ', shine: '光沢', strength: '強度',
+      softness: '柔らかさ', luster: '光沢', elasticity: '弾力', absorbency: '吸湿'
+    },
+    weaveCategories: {
+      plain: '平織系', twill: '綾織系', satin: '朱子織系',
+      dobby: 'ドビー', jacquard: 'ジャカード', pile: 'パイル', special: '特殊織'
+    },
+    fiberCategories: {
+      cotton: '綿', linen: '麻', wool: '羊毛', silk: '絹',
+      synthetic: '合成', regenerated: '再生', blend: '混紡', specialty: '特殊'
+    },
+    fibers: {
+      cotton: '綿', polyester: 'ポリエステル', wool: 'ウール', linen: '麻',
+      silk: 'シルク', nylon: 'ナイロン', viscose: 'レーヨン', spandex: 'スパンデックス',
+      modal: 'モダール', lyocell: 'テンセル', cashmere: 'カシミヤ', acrylic: 'アクリル'
+    },
+    riskLevels: { none: 'なし', low: '低', medium: '中', high: '高', critical: '要注意' },
+    weightCat: { ultraLight: '極薄地', light: '薄地', mediumLight: '中薄地', medium: '中厚地', heavy: '厚地', ultraHeavy: '極厚地' },
+    close: '閉じる', download: 'ダウンロード', print: '印刷',
+    fabricA: '生地A', fabricB: '生地B', current: '現在の設定',
+    nearestPantone: '近似Pantone',
+  },
+  zh: {
+    title: '色织模拟器',
+    subtitle: '织物组织 × 纱线 × 颜色的实时预览',
+    tabs: { design: '设计', weave: '组织', yarn: '纱线', specs: '规格', tools: '工具' },
+    pattern: '图案',
+    patterns: { check: '格子', stripe: '条纹', solid: '素色' },
+    warpColor: '经纱颜色',
+    weftColor: '纬纱颜色',
+    pitch: '花纹间距',
+    zoom: '缩放',
+    weaveCategory: '织物类别',
+    selectWeave: '选择织物组织',
+    yarnCategory: '材质类别',
+    warpYarn: '经纱',
+    weftYarn: '纬纱',
+    epi: '经密 (EPI)',
+    ppi: '纬密 (PPI)',
+    gsm: '克重',
+    fabricSummary: '面料构成摘要',
+    weaveType: '织物组织',
+    difficulty: '难度',
+    savePng: '保存PNG',
+    riskAnalysis: '风险分析',
+    risks: '项风险',
+    sellingPoints: '卖点',
+    preview: '预览',
+    quickColors: '快速选色',
+    noRisk: '无风险',
+    specSheet: '规格书输出',
+    compare: '对比模式',
+    glossary: '术语词典',
+    pantone: 'Pantone转换',
+    season: '季节判定',
+    similar: '类似面料',
+    trend: '趋势色',
+    random: '随机生成',
+    springSum: '春夏适用',
+    autumnWin: '秋冬适用',
+    allSeason: '四季适用',
+    characteristics: {
+      durability: '耐久', drape: '垂感', breathability: '透气',
+      wrinkleResistance: '抗皱', shine: '光泽', strength: '强度',
+      softness: '柔软', luster: '光泽', elasticity: '弹性', absorbency: '吸湿'
+    },
+    weaveCategories: {
+      plain: '平纹', twill: '斜纹', satin: '缎纹',
+      dobby: '多臂', jacquard: '提花', pile: '毛圈', special: '特殊'
+    },
+    fiberCategories: {
+      cotton: '棉', linen: '麻', wool: '毛', silk: '丝',
+      synthetic: '合纤', regenerated: '再生', blend: '混纺', specialty: '特种'
+    },
+    fibers: {
+      cotton: '棉', polyester: '涤纶', wool: '羊毛', linen: '麻',
+      silk: '丝绸', nylon: '尼龙', viscose: '粘胶', spandex: '氨纶',
+      modal: '莫代尔', lyocell: '天丝', cashmere: '羊绒', acrylic: '腈纶'
+    },
+    riskLevels: { none: '无', low: '低', medium: '中', high: '高', critical: '需注意' },
+    weightCat: { ultraLight: '极薄', light: '薄型', mediumLight: '中薄', medium: '中厚', heavy: '厚型', ultraHeavy: '极厚' },
+    close: '关闭', download: '下载', print: '打印',
+    fabricA: '面料A', fabricB: '面料B', current: '当前设置',
+    nearestPantone: '近似Pantone',
+  }
+};
+
+// ============================================================
+// 織り組織データベース（簡略版）
+// ============================================================
+function createMatrix(rows, cols, fn) {
+  const m = [];
+  for (let y = 0; y < rows; y++) { const r = []; for (let x = 0; x < cols; x++) r.push(fn(x, y)); m.push(r); }
+  return m;
+}
+
+const WEAVE_DB = [
+  { id: 'plain', name: { ja: '平織', zh: '平纹' }, cat: 'plain', matrix: createMatrix(2, 2, (x, y) => (x+y)%2===0), rx: 2, ry: 2, chars: { durability: 5, drape: 2, breathability: 5, wrinkleResistance: 2, shine: 1 }, gsm: 1.0, diff: 1, apps: { ja: ['シャツ'], zh: ['衬衫'] } },
+  { id: 'oxford', name: { ja: 'オックスフォード', zh: '牛津布' }, cat: 'plain', matrix: createMatrix(4, 4, (x, y) => { const px=Math.floor(x/2), py=Math.floor(y/2); return (px+py)%2===0; }), rx: 4, ry: 4, chars: { durability: 4, drape: 3, breathability: 4, wrinkleResistance: 3, shine: 2 }, gsm: 1.15, diff: 2, apps: { ja: ['シャツ'], zh: ['衬衫'] } },
+  { id: 'broadcloth', name: { ja: 'ブロード', zh: '府绸' }, cat: 'plain', matrix: createMatrix(2, 2, (x, y) => (x+y)%2===0), rx: 2, ry: 2, chars: { durability: 4, drape: 3, breathability: 4, wrinkleResistance: 3, shine: 3 }, gsm: 0.95, diff: 2, apps: { ja: ['ドレスシャツ'], zh: ['正装衬衫'] } },
+  { id: 'canvas', name: { ja: '帆布', zh: '帆布' }, cat: 'plain', matrix: createMatrix(2, 2, (x, y) => (x+y)%2===0), rx: 2, ry: 2, chars: { durability: 5, drape: 1, breathability: 3, wrinkleResistance: 4, shine: 1 }, gsm: 2.0, diff: 2, apps: { ja: ['バッグ'], zh: ['包'] } },
+  { id: 'twill_2_1', name: { ja: '2/1ツイル', zh: '2/1斜纹' }, cat: 'twill', matrix: createMatrix(3, 3, (x, y) => (x+y)%3<2), rx: 3, ry: 3, chars: { durability: 4, drape: 4, breathability: 3, wrinkleResistance: 3, shine: 3 }, gsm: 1.05, diff: 2, apps: { ja: ['チノ'], zh: ['卡其裤'] } },
+  { id: 'twill_2_2', name: { ja: '2/2ツイル', zh: '2/2斜纹' }, cat: 'twill', matrix: createMatrix(4, 4, (x, y) => (x+y)%4<2), rx: 4, ry: 4, chars: { durability: 4, drape: 4, breathability: 3, wrinkleResistance: 4, shine: 3 }, gsm: 1.1, diff: 2, apps: { ja: ['スーツ'], zh: ['西装'] } },
+  { id: 'denim', name: { ja: 'デニム', zh: '牛仔布' }, cat: 'twill', matrix: createMatrix(4, 4, (x, y) => (x-y+4)%4<3), rx: 4, ry: 4, chars: { durability: 5, drape: 2, breathability: 3, wrinkleResistance: 3, shine: 2 }, gsm: 1.4, diff: 2, apps: { ja: ['ジーンズ'], zh: ['牛仔裤'] } },
+  { id: 'herringbone', name: { ja: 'ヘリンボーン', zh: '人字纹' }, cat: 'twill', matrix: createMatrix(8, 8, (x, y) => { const p=4, xM=x%(p*2), off=xM<p?xM:(p*2-1-xM); return ((y+off)%4)<2; }), rx: 8, ry: 8, chars: { durability: 4, drape: 4, breathability: 3, wrinkleResistance: 4, shine: 3 }, gsm: 1.15, diff: 3, apps: { ja: ['ジャケット'], zh: ['夹克'] } },
+  { id: 'gabardine', name: { ja: 'ギャバジン', zh: '华达呢' }, cat: 'twill', matrix: createMatrix(4, 4, (x, y) => (x+y*2)%4<2), rx: 4, ry: 4, chars: { durability: 5, drape: 3, breathability: 3, wrinkleResistance: 5, shine: 4 }, gsm: 1.2, diff: 3, apps: { ja: ['コート'], zh: ['外套'] } },
+  { id: 'satin_5', name: { ja: '5枚朱子', zh: '五枚缎' }, cat: 'satin', matrix: createMatrix(5, 5, (x, y) => (x+y*2)%5===0), rx: 5, ry: 5, chars: { durability: 2, drape: 5, breathability: 3, wrinkleResistance: 2, shine: 5 }, gsm: 1.0, diff: 3, apps: { ja: ['ドレス'], zh: ['礼服'] } },
+  { id: 'sateen', name: { ja: 'サテン', zh: '贡缎' }, cat: 'satin', matrix: createMatrix(5, 5, (x, y) => (y+x*2)%5===0), rx: 5, ry: 5, chars: { durability: 3, drape: 5, breathability: 3, wrinkleResistance: 2, shine: 4 }, gsm: 1.0, diff: 3, apps: { ja: ['シーツ'], zh: ['床单'] } },
+  { id: 'pique', name: { ja: 'ピケ', zh: '珠地布' }, cat: 'dobby', matrix: createMatrix(4, 4, (x, y) => y%2===0), rx: 4, ry: 4, chars: { durability: 4, drape: 2, breathability: 5, wrinkleResistance: 4, shine: 2 }, gsm: 1.15, diff: 3, apps: { ja: ['ポロシャツ'], zh: ['Polo衫'] } },
+  { id: 'houndstooth', name: { ja: '千鳥格子', zh: '千鸟格' }, cat: 'dobby', matrix: createMatrix(8, 8, (x, y) => { const b=4, bx=Math.floor(x/b), by=Math.floor(y/b), lx=x%b, ly=y%b; return (bx+by)%2===0?(lx<2||ly<2):(lx>=2&&ly>=2); }), rx: 8, ry: 8, chars: { durability: 4, drape: 3, breathability: 3, wrinkleResistance: 4, shine: 2 }, gsm: 1.1, diff: 4, apps: { ja: ['ジャケット'], zh: ['夹克'] } },
+  { id: 'waffle', name: { ja: 'ワッフル', zh: '华夫格' }, cat: 'dobby', matrix: createMatrix(8, 8, (x, y) => { const z=(Math.floor(x/4)+Math.floor(y/4))%2; return z===0?(x%4<2)===(y%4<2):(x%4>=2)===(y%4>=2); }), rx: 8, ry: 8, chars: { durability: 3, drape: 3, breathability: 5, wrinkleResistance: 2, shine: 1 }, gsm: 1.3, diff: 4, apps: { ja: ['タオル'], zh: ['毛巾'] } },
+  { id: 'damask', name: { ja: 'ダマスク', zh: '锦缎' }, cat: 'jacquard', matrix: createMatrix(16, 16, (x, y) => { const cx=Math.abs(x-7.5), cy=Math.abs(y-7.5); return (cx+cy)<6||(x%4===0&&y%4===0); }), rx: 16, ry: 16, chars: { durability: 4, drape: 4, breathability: 3, wrinkleResistance: 3, shine: 4 }, gsm: 1.2, diff: 5, apps: { ja: ['テーブルクロス'], zh: ['桌布'] } },
+  { id: 'velvet', name: { ja: 'ベルベット', zh: '丝绒' }, cat: 'pile', matrix: createMatrix(4, 4, (x, y) => y%2===0), rx: 4, ry: 4, chars: { durability: 3, drape: 4, breathability: 2, wrinkleResistance: 2, shine: 4 }, gsm: 1.8, diff: 5, apps: { ja: ['ドレス'], zh: ['礼服'] } },
+  { id: 'corduroy', name: { ja: 'コーデュロイ', zh: '灯芯绒' }, cat: 'pile', matrix: createMatrix(8, 4, (x, y) => x%8<4&&y%2===0), rx: 8, ry: 4, chars: { durability: 4, drape: 3, breathability: 3, wrinkleResistance: 3, shine: 2 }, gsm: 1.6, diff: 4, apps: { ja: ['パンツ'], zh: ['裤子'] } },
+  { id: 'terry', name: { ja: 'テリー', zh: '毛圈布' }, cat: 'pile', matrix: createMatrix(4, 4, () => true), rx: 4, ry: 4, chars: { durability: 4, drape: 2, breathability: 5, wrinkleResistance: 2, shine: 1 }, gsm: 2.0, diff: 3, apps: { ja: ['タオル'], zh: ['毛巾'] } },
+  { id: 'seersucker', name: { ja: 'シアサッカー', zh: '泡泡纱' }, cat: 'special', matrix: createMatrix(8, 4, (x, y) => { const z=Math.floor(x/4)%2; return z===0?(x+y)%2===0:y%2===0; }), rx: 8, ry: 4, chars: { durability: 4, drape: 3, breathability: 5, wrinkleResistance: 4, shine: 1 }, gsm: 1.0, diff: 4, apps: { ja: ['夏物'], zh: ['夏装'] } },
+  { id: 'double_cloth', name: { ja: '二重織', zh: '双层织' }, cat: 'special', matrix: createMatrix(8, 8, (x, y) => { const l=Math.floor(y/4); return l===0?(x+y)%2===0:(x+y)%2===1; }), rx: 8, ry: 8, chars: { durability: 5, drape: 2, breathability: 2, wrinkleResistance: 4, shine: 2 }, gsm: 2.0, diff: 5, apps: { ja: ['コート'], zh: ['外套'] } },
+];
+
+// ============================================================
+// 糸データベース（簡略版）
+// ============================================================
+const YARN_DB = [
+  { id: 'cotton_20', name: { ja: 'カード綿 20Ne', zh: '普梳棉 20支' }, cat: 'cotton', comp: [{ f: 'cotton', p: 100 }], ne: 20, chars: { strength: 3, softness: 3, luster: 2, elasticity: 2, absorbency: 5, durability: 4 }, price: 2 },
+  { id: 'cotton_40', name: { ja: 'カード綿 40Ne', zh: '普梳棉 40支' }, cat: 'cotton', comp: [{ f: 'cotton', p: 100 }], ne: 40, chars: { strength: 3, softness: 4, luster: 2, elasticity: 2, absorbency: 5, durability: 3 }, price: 3 },
+  { id: 'combed_40', name: { ja: 'コーマ綿 40Ne', zh: '精梳棉 40支' }, cat: 'cotton', comp: [{ f: 'cotton', p: 100 }], ne: 40, chars: { strength: 4, softness: 5, luster: 4, elasticity: 2, absorbency: 5, durability: 4 }, price: 4 },
+  { id: 'combed_60', name: { ja: 'コーマ綿 60Ne', zh: '精梳棉 60支' }, cat: 'cotton', comp: [{ f: 'cotton', p: 100 }], ne: 60, chars: { strength: 3, softness: 5, luster: 4, elasticity: 2, absorbency: 5, durability: 3 }, price: 5 },
+  { id: 'combed_80', name: { ja: 'コーマ綿 80Ne', zh: '精梳棉 80支' }, cat: 'cotton', comp: [{ f: 'cotton', p: 100 }], ne: 80, chars: { strength: 3, softness: 5, luster: 5, elasticity: 2, absorbency: 5, durability: 3 }, price: 6 },
+  { id: 'linen_40', name: { ja: 'リネン 40Lea', zh: '亚麻 40支' }, cat: 'linen', comp: [{ f: 'linen', p: 100 }], ne: 24, chars: { strength: 5, softness: 2, luster: 4, elasticity: 1, absorbency: 5, durability: 5 }, price: 6 },
+  { id: 'ramie', name: { ja: 'ラミー 40Ne', zh: '苎麻 40支' }, cat: 'linen', comp: [{ f: 'ramie', p: 100 }], ne: 40, chars: { strength: 5, softness: 2, luster: 5, elasticity: 1, absorbency: 5, durability: 5 }, price: 5 },
+  { id: 'merino_60', name: { ja: 'メリノ 60Nm', zh: '美利奴 60支' }, cat: 'wool', comp: [{ f: 'wool', p: 100 }], ne: 35, chars: { strength: 3, softness: 5, luster: 4, elasticity: 5, absorbency: 4, durability: 3 }, price: 6 },
+  { id: 'worsted_48', name: { ja: '梳毛 48Nm', zh: '精纺毛 48支' }, cat: 'wool', comp: [{ f: 'wool', p: 100 }], ne: 28, chars: { strength: 4, softness: 4, luster: 4, elasticity: 4, absorbency: 4, durability: 4 }, price: 5 },
+  { id: 'cashmere', name: { ja: 'カシミヤ 60Nm', zh: '羊绒 60支' }, cat: 'wool', comp: [{ f: 'cashmere', p: 100 }], ne: 35, chars: { strength: 2, softness: 5, luster: 5, elasticity: 4, absorbency: 4, durability: 2 }, price: 8 },
+  { id: 'silk_60', name: { ja: '絹紡 60Nm', zh: '绢纺 60支' }, cat: 'silk', comp: [{ f: 'silk', p: 100 }], ne: 35, chars: { strength: 3, softness: 5, luster: 5, elasticity: 3, absorbency: 4, durability: 3 }, price: 7 },
+  { id: 'poly_75d', name: { ja: 'ポリエステル 75D', zh: '涤纶 75D' }, cat: 'synthetic', comp: [{ f: 'polyester', p: 100 }], ne: 71, chars: { strength: 5, softness: 3, luster: 4, elasticity: 4, absorbency: 1, durability: 5 }, price: 2 },
+  { id: 'nylon_70d', name: { ja: 'ナイロン 70D', zh: '尼龙 70D' }, cat: 'synthetic', comp: [{ f: 'nylon', p: 100 }], ne: 76, chars: { strength: 5, softness: 4, luster: 4, elasticity: 5, absorbency: 2, durability: 5 }, price: 3 },
+  { id: 'viscose_40', name: { ja: 'レーヨン 40Ne', zh: '粘胶 40支' }, cat: 'regenerated', comp: [{ f: 'viscose', p: 100 }], ne: 40, chars: { strength: 2, softness: 5, luster: 5, elasticity: 2, absorbency: 5, durability: 2 }, price: 3 },
+  { id: 'tencel_40', name: { ja: 'テンセル 40Ne', zh: '天丝 40支' }, cat: 'regenerated', comp: [{ f: 'lyocell', p: 100 }], ne: 40, chars: { strength: 4, softness: 5, luster: 4, elasticity: 2, absorbency: 5, durability: 4 }, price: 5 },
+  { id: 'tc_65_35', name: { ja: 'TC 65/35', zh: 'TC 65/35' }, cat: 'blend', comp: [{ f: 'cotton', p: 65 }, { f: 'polyester', p: 35 }], ne: 30, chars: { strength: 4, softness: 4, luster: 3, elasticity: 3, absorbency: 4, durability: 5 }, price: 3 },
+  { id: 'cotton_linen', name: { ja: '綿麻 55/45', zh: '棉麻 55/45' }, cat: 'blend', comp: [{ f: 'cotton', p: 55 }, { f: 'linen', p: 45 }], ne: 30, chars: { strength: 4, softness: 3, luster: 3, elasticity: 2, absorbency: 5, durability: 5 }, price: 4 },
+  { id: 'wool_poly', name: { ja: 'ウールポリ 55/45', zh: '毛涤 55/45' }, cat: 'blend', comp: [{ f: 'wool', p: 55 }, { f: 'polyester', p: 45 }], ne: 28, chars: { strength: 4, softness: 4, luster: 4, elasticity: 4, absorbency: 3, durability: 5 }, price: 4 },
+  { id: 'cotton_spandex', name: { ja: '綿スパン 97/3', zh: '棉氨 97/3' }, cat: 'blend', comp: [{ f: 'cotton', p: 97 }, { f: 'spandex', p: 3 }], ne: 40, chars: { strength: 4, softness: 4, luster: 3, elasticity: 4, absorbency: 4, durability: 4 }, price: 4 },
+  { id: 'coolmax', name: { ja: 'クールマックス', zh: 'CoolMax' }, cat: 'specialty', comp: [{ f: 'polyester', p: 100 }], ne: 71, chars: { strength: 5, softness: 3, luster: 3, elasticity: 4, absorbency: 2, durability: 5 }, price: 4, special: ['moisture'] },
+];
+
+// ============================================================
+// カラーパレット
+// ============================================================
+const SWATCHES = [
+  "#000000","#ffffff","#c1121f","#2a6f97","#1d3557","#457b9d","#e9c46a","#f4a261","#e76f51","#264653",
+  "#4f772d","#90a955","#8a5a44","#6a4c93","#b5179e","#7209b7","#560bad","#480ca8","#3a0ca3","#4361ee",
+  "#4895ef","#4cc9f0","#118ab2","#06d6a0","#ffd166","#ef476f","#073b4c","#f72585","#3a5a40","#bc6c25"
+];
+
+// ============================================================
+// ユーティリティ
+// ============================================================
+function hexToRgb(hex) {
+  const c = hex.replace('#','');
+  const bigint = parseInt(c.length === 3 ? c.split('').map(x=>x+x).join('') : c, 16);
+  return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+}
+function rgbToHex(r, g, b) { return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join(''); }
+function withAlpha(hex, a) { const { r, g, b } = hexToRgb(hex); return `rgba(${r},${g},${b},${a})`; }
+function colorDistance(hex1, hex2) {
+  const c1 = hexToRgb(hex1), c2 = hexToRgb(hex2);
+  return Math.sqrt(Math.pow(c1.r - c2.r, 2) + Math.pow(c1.g - c2.g, 2) + Math.pow(c1.b - c2.b, 2));
+}
+function findNearestPantone(hex) {
+  let nearest = PANTONE_DB[0], minDist = Infinity;
+  PANTONE_DB.forEach(p => { const d = colorDistance(hex, p.hex); if (d < minDist) { minDist = d; nearest = p; } });
+  return nearest;
+}
+function getWeave(id) { return WEAVE_DB.find(w => w.id === id); }
+function getYarn(id) { return YARN_DB.find(y => y.id === id); }
+function getComp(yarn, lang) { return yarn.comp.map(c => `${LANG[lang].fibers[c.f]||c.f} ${c.p}%`).join('/'); }
+
+// 季節判定
+function judgeSeason(config) {
+  const yarn = getYarn(config.warpYarnId);
+  const weave = getWeave(config.weaveId);
+  const gsm = calcGSM(config);
+  if (!yarn || !weave || !gsm) return 'all';
+
+  const fiber = yarn.comp[0]?.f;
+  const gsmVal = gsm.gsm;
+
+  // 夏向き: 麻、薄地、通気性高い
+  if (['linen', 'ramie'].includes(fiber) || gsmVal < 150 || weave.chars.breathability >= 4) {
+    return 'ss';
+  }
+  // 冬向き: ウール、カシミヤ、厚地
+  if (['wool', 'cashmere'].includes(fiber) || gsmVal > 280) {
+    return 'aw';
+  }
+  return 'all';
+}
+
+// 類似生地検索
+function findSimilar(config) {
+  const weave = getWeave(config.weaveId);
+  const yarn = getYarn(config.warpYarnId);
+  const gsm = calcGSM(config);
+  if (!weave || !yarn || !gsm) return [];
+
+  return SIMILAR_FABRICS.filter(f => {
+    const weaveMatch = f.weave === config.weaveId || (weave.cat === getWeave(f.weave)?.cat);
+    const yarnMatch = f.yarn === yarn.cat || yarn.comp.some(c => c.f === f.yarn);
+    const epiMatch = config.epi >= f.epiRange[0] && config.epi <= f.epiRange[1];
+    const gsmMatch = gsm.gsm >= f.gsmRange[0] && gsm.gsm <= f.gsmRange[1];
+    return (weaveMatch || yarnMatch) && (epiMatch || gsmMatch);
+  }).slice(0, 5);
+}
+
+// GSM計算
+function calcGSM(config) {
+  const weave = getWeave(config.weaveId);
+  const yarn = getYarn(config.warpYarnId);
+  if (!weave || !yarn) return null;
+  const ne = yarn.ne || 30;
+  const tex = 590.5 / ne;
+  let gsm = (config.epi * tex * 0.0254 + config.ppi * tex * 0.0254) * 0.4 * (weave.gsm || 1);
+  let cat = gsm < 100 ? 'ultraLight' : gsm < 150 ? 'light' : gsm < 200 ? 'mediumLight' : gsm < 280 ? 'medium' : gsm < 350 ? 'heavy' : 'ultraHeavy';
+  return { gsm: Math.round(gsm), cat };
+}
+
+// リスク分析
+function analyzeRisks(config, lang) {
+  const weave = getWeave(config.weaveId);
+  const yarn = getYarn(config.warpYarnId);
+  const risks = [];
+  if (!weave || !yarn) return { risks: [], level: 'none' };
+
+  if (yarn.ne > 60 && config.epi > 120) {
+    risks.push({ icon: '🧵', title: lang === 'ja' ? '糸切れリスク高' : '断线风险高', level: 'high' });
+  } else if (yarn.ne > 50 && config.epi > 100) {
+    risks.push({ icon: '🧵', title: lang === 'ja' ? '糸切れ注意' : '注意断线', level: 'medium' });
+  }
+  if (weave.diff >= 5) {
+    risks.push({ icon: '🔧', title: lang === 'ja' ? '高難度組織' : '高难度组织', level: 'high' });
+  } else if (weave.diff >= 4) {
+    risks.push({ icon: '🔧', title: lang === 'ja' ? '中難度組織' : '中难度组织', level: 'medium' });
+  }
+
+  const level = risks.some(r => r.level === 'high') ? 'high' : risks.some(r => r.level === 'medium') ? 'medium' : risks.length ? 'low' : 'none';
+  return { risks, level };
+}
+
+// ランダム生成
+function randomGenerate() {
+  const weave = WEAVE_DB[Math.floor(Math.random() * WEAVE_DB.length)];
+  const yarn = YARN_DB[Math.floor(Math.random() * YARN_DB.length)];
+  const warpColors = [SWATCHES[Math.floor(Math.random() * SWATCHES.length)]];
+  const weftColors = [SWATCHES[Math.floor(Math.random() * SWATCHES.length)]];
+  if (Math.random() > 0.5) warpColors.push(SWATCHES[Math.floor(Math.random() * SWATCHES.length)]);
+  if (Math.random() > 0.5) weftColors.push(SWATCHES[Math.floor(Math.random() * SWATCHES.length)]);
+  return {
+    weaveId: weave.id,
+    weaveCat: weave.cat,
+    warpYarnId: yarn.id,
+    weftYarnId: yarn.id,
+    yarnCat: yarn.cat,
+    warpColors,
+    weftColors,
+    pattern: ['check', 'stripe', 'solid'][Math.floor(Math.random() * 3)],
+    epi: 80 + Math.floor(Math.random() * 60),
+    ppi: 60 + Math.floor(Math.random() * 50),
+  };
+}
+
+// ============================================================
+// 描画
+// ============================================================
+function drawFabric(ctx, w, h, config, withLogo = false) {
+  const weave = getWeave(config.weaveId);
+  if (!weave) return;
+  ctx.clearRect(0, 0, w, h);
+  const sp = config.pitch * config.zoom;
+  const { matrix, rx, ry } = weave;
+  const cw = sp / rx, ch = sp / ry;
+
+  for (let y = 0; y < h; y += ch) {
+    for (let x = 0; x < w; x += cw) {
+      let warpC, weftC;
+      if (config.pattern === 'solid') { warpC = config.warpColors[0]; weftC = config.weftColors[0]; }
+      else if (config.pattern === 'stripe') { warpC = config.warpColors[Math.floor(x / sp) % config.warpColors.length]; weftC = config.weftColors[0]; }
+      else { warpC = config.warpColors[Math.floor(x / sp) % config.warpColors.length]; weftC = config.weftColors[Math.floor(y / sp) % config.weftColors.length]; }
+
+      const mx = Math.floor((x / cw) % rx), my = Math.floor((y / ch) % ry);
+      const isWarp = matrix[my]?.[mx] ?? true;
+      ctx.fillStyle = isWarp ? warpC : weftC;
+      ctx.fillRect(x, y, cw + 0.5, ch + 0.5);
+      ctx.fillStyle = isWarp ? withAlpha(weftC, 0.1) : withAlpha(warpC, 0.1);
+      ctx.fillRect(x, y, cw + 0.5, ch + 0.5);
+    }
+  }
+
+  // JYUKOロゴ
+  if (withLogo) {
+    ctx.save();
+    ctx.font = 'bold 18px Arial';
+    ctx.fillStyle = '#7cb342';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('JYUKO co.,ltd', w - 10, h - 10);
+    ctx.restore();
+  }
+}
+
+// ============================================================
+// アプリケーション
+// ============================================================
+const app = document.getElementById('app');
+let state = {
+  lang: 'ja',
+  pattern: 'check',
+  weaveId: 'oxford',
+  weaveCat: 'plain',
+  warpColors: ['#1d3557', '#e76f51'],
+  weftColors: ['#ffffff', '#e9c46a'],
+  warpYarnId: 'combed_40',
+  weftYarnId: 'combed_40',
+  yarnCat: 'cotton',
+  pitch: 28,
+  zoom: 1,
+  epi: 110,
+  ppi: 90,
+  tab: 'design',
+  modal: null,
+  editColor: null,
+  compareMode: false,
+  savedConfig: null,
+};
+
+function setState(ns) { Object.assign(state, ns); render(); }
+
+function render() {
+  const L = LANG[state.lang];
+  const weave = getWeave(state.weaveId);
+  const warpYarn = getYarn(state.warpYarnId);
+  const risks = analyzeRisks(state, state.lang);
+  const gsm = calcGSM(state);
+  const season = judgeSeason(state);
+  const similar = findSimilar(state);
+  const riskColors = { none: '#10B981', low: '#84CC16', medium: '#F59E0B', high: '#EF4444' };
+
+  app.innerHTML = `
+    <header class="mb-4 flex items-center justify-between flex-wrap gap-2 no-print">
+      <div>
+        <h1 class="text-2xl font-bold">${L.title}</h1>
+        <p class="text-sm text-neutral-500">${L.subtitle}</p>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <button onclick="setState({lang: state.lang === 'ja' ? 'zh' : 'ja'})" class="px-3 py-1.5 rounded-lg bg-neutral-200 text-sm font-medium">
+          ${state.lang === 'ja' ? '🇨🇳 中文' : '🇯🇵 日本語'}
+        </button>
+        ${risks.risks.length > 0 ? `<button onclick="setState({modal:'risk'})" class="px-3 py-1.5 rounded-lg text-white text-sm" style="background:${riskColors[risks.level]}">${risks.risks.length} ${L.risks}</button>` : `<span class="px-3 py-1.5 rounded-lg bg-green-100 text-green-700 text-sm">${L.noRisk}</span>`}
+        <button onclick="setState({modal:'selling'})" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm">${L.sellingPoints}</button>
+      </div>
+    </header>
+
+    <div class="flex gap-1 mb-4 bg-neutral-200 p-1 rounded-xl w-fit flex-wrap no-print">
+      ${['design', 'weave', 'yarn', 'specs', 'tools'].map(t => `
+        <button onclick="setState({tab:'${t}'})" class="px-4 py-2 rounded-lg text-sm font-medium ${state.tab === t ? 'bg-white shadow' : 'hover:bg-neutral-100'}">${L.tabs[t]}</button>
+      `).join('')}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <section class="lg:col-span-5 bg-white rounded-2xl shadow p-4 space-y-4 no-print">
+        ${state.tab === 'design' ? renderDesign(L) : ''}
+        ${state.tab === 'weave' ? renderWeave(L, weave) : ''}
+        ${state.tab === 'yarn' ? renderYarn(L, warpYarn) : ''}
+        ${state.tab === 'specs' ? renderSpecs(L, weave, warpYarn, gsm, season, similar) : ''}
+        ${state.tab === 'tools' ? renderTools(L) : ''}
+      </section>
+
+      <section class="lg:col-span-7 bg-white rounded-2xl shadow p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-medium">${L.preview}</h2>
+          <div class="text-sm text-neutral-500">${weave?.name[state.lang] || ''}</div>
+        </div>
+        ${state.compareMode && state.savedConfig ? `
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <div class="text-center text-sm font-medium">${L.fabricA} (${L.current})</div>
+            <div class="text-center text-sm font-medium">${L.fabricB}</div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <canvas id="canvasA" class="rounded-xl border shadow-inner w-full"></canvas>
+            <canvas id="canvasB" class="rounded-xl border shadow-inner w-full"></canvas>
+          </div>
+        ` : `
+          <div class="flex justify-center">
+            <canvas id="canvas" class="rounded-xl border shadow-inner" style="max-width:100%"></canvas>
+          </div>
+        `}
+        <div class="mt-4 no-print">
+          <label class="block text-sm font-medium mb-2">${L.quickColors}</label>
+          <div class="flex flex-wrap gap-1">
+            ${SWATCHES.map(hex => `<button class="w-7 h-7 rounded-md border border-neutral-300 color-swatch" style="background:${hex}" onclick="quickColor('${hex}')" title="${hex}"></button>`).join('')}
+          </div>
+        </div>
+      </section>
+    </div>
+
+    ${state.modal === 'risk' ? renderRiskModal(L, risks, riskColors) : ''}
+    ${state.modal === 'selling' ? renderSellingModal(L) : ''}
+    ${state.modal === 'spec' ? renderSpecModal(L, weave, warpYarn, gsm, season) : ''}
+    ${state.modal === 'glossary' ? renderGlossaryModal(L) : ''}
+    ${state.modal === 'pantone' ? renderPantoneModal(L) : ''}
+    ${state.modal === 'trend' ? renderTrendModal(L) : ''}
+  `;
+
+  // Canvas描画
+  setTimeout(() => {
+    if (state.compareMode && state.savedConfig) {
+      const cA = document.getElementById('canvasA');
+      const cB = document.getElementById('canvasB');
+      if (cA && cB) {
+        [cA, cB].forEach((c, i) => {
+          const dpr = window.devicePixelRatio || 1;
+          const w = 240, h = 240;
+          c.width = w * dpr; c.height = h * dpr;
+          c.style.width = w + 'px'; c.style.height = h + 'px';
+          const ctx = c.getContext('2d');
+          ctx.scale(dpr, dpr);
+          drawFabric(ctx, w, h, i === 0 ? state : state.savedConfig, true);
+        });
+      }
+    } else {
+      const canvas = document.getElementById('canvas');
+      if (canvas) {
+        const dpr = window.devicePixelRatio || 1;
+        const w = 500, h = 500;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+        drawFabric(ctx, w, h, state, true);
+      }
+    }
+  }, 0);
+}
+
+function renderDesign(L) {
+  return `
+    <div>
+      <label class="block text-sm font-medium mb-2">${L.pattern}</label>
+      <div class="flex gap-2 flex-wrap">
+        ${['check', 'stripe', 'solid'].map(p => `<button onclick="setState({pattern:'${p}'})" class="px-4 py-2 rounded-lg border text-sm ${state.pattern === p ? 'bg-neutral-900 text-white' : 'hover:border-neutral-400'}">${L.patterns[p]}</button>`).join('')}
+      </div>
+    </div>
+    ${renderColorMgr('warp', L.warpColor, state.warpColors)}
+    ${renderColorMgr('weft', L.weftColor, state.weftColors)}
+    <div>
+      <label class="block text-sm font-medium mb-1">${L.pitch}: <span class="font-bold">${state.pitch}px</span></label>
+      <input type="range" min="8" max="80" value="${state.pitch}" onchange="setState({pitch:+this.value})" class="w-full accent-neutral-900">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">${L.zoom}: <span class="font-bold">${state.zoom.toFixed(1)}x</span></label>
+      <input type="range" min="0.5" max="3" step="0.1" value="${state.zoom}" onchange="setState({zoom:+this.value})" class="w-full accent-neutral-900">
+      <div class="flex gap-2 mt-1">${[0.5,1,1.5,2,3].map(z => `<button onclick="setState({zoom:${z}})" class="px-2 py-1 text-xs rounded ${state.zoom===z?'bg-neutral-900 text-white':'bg-neutral-100'}">${z}x</button>`).join('')}</div>
+    </div>
+  `;
+}
+
+function renderColorMgr(type, label, colors) {
+  return `
+    <div>
+      <label class="block text-sm font-medium mb-2 tooltip" data-tip="${type === 'warp' ? (state.lang === 'ja' ? '縦方向の糸' : '纵向纱线') : (state.lang === 'ja' ? '横方向の糸' : '横向纱线')}">${label}</label>
+      <div class="flex flex-wrap gap-2 items-center">
+        ${colors.map((c, i) => `
+          <div class="relative group">
+            <button class="w-10 h-10 rounded-lg border-2 border-neutral-300 shadow-sm hover:border-neutral-500" style="background:${c}" onclick="toggleEdit('${type}',${i})"></button>
+            ${colors.length > 1 ? `<button onclick="removeColor('${type}',${i})" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100">×</button>` : ''}
+            ${state.editColor === type + i ? `
+              <div class="absolute top-12 left-0 z-20 bg-white rounded-lg shadow-xl p-2 border">
+                <input type="color" value="${c}" onchange="updColor('${type}',${i},this.value)" class="w-full h-8 mb-2">
+                <div class="grid grid-cols-5 gap-1">${SWATCHES.slice(0,15).map(hex => `<button class="w-6 h-6 rounded border" style="background:${hex}" onclick="updColor('${type}',${i},'${hex}');setState({editColor:null})"></button>`).join('')}</div>
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+        ${colors.length < 8 ? `<button onclick="addColor('${type}')" class="w-10 h-10 rounded-lg border-2 border-dashed border-neutral-300 text-neutral-400 hover:border-neutral-500">+</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderWeave(L, weave) {
+  const filtered = WEAVE_DB.filter(w => w.cat === state.weaveCat);
+  return `
+    <div>
+      <label class="block text-sm font-medium mb-2">${L.weaveCategory}</label>
+      <div class="flex flex-wrap gap-2">
+        ${Object.keys(L.weaveCategories).map(c => `<button onclick="setWeaveCat('${c}')" class="px-3 py-1.5 rounded-lg border text-sm ${state.weaveCat===c?'bg-neutral-900 text-white':'hover:border-neutral-400'}">${L.weaveCategories[c]}</button>`).join('')}
+      </div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-2">${L.selectWeave}</label>
+      <div class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+        ${filtered.map(w => `<button onclick="setState({weaveId:'${w.id}'})" class="p-3 rounded-lg border text-left ${state.weaveId===w.id?'border-neutral-900 bg-neutral-50':'hover:border-neutral-400'}"><div class="font-medium text-sm">${w.name[state.lang]}</div></button>`).join('')}
+      </div>
+    </div>
+    ${weave ? `
+      <div class="bg-neutral-50 rounded-xl p-3">
+        <h4 class="font-medium mb-2">${weave.name[state.lang]}</h4>
+        <div class="grid grid-cols-5 gap-1 text-xs">
+          ${Object.entries(weave.chars).map(([k,v]) => `<div class="text-center"><div class="font-medium">${v}/5</div><div class="text-neutral-500">${L.characteristics[k]||k}</div></div>`).join('')}
+        </div>
+        <div class="mt-2 flex flex-wrap gap-1">${(weave.apps[state.lang]||[]).map(a => `<span class="px-2 py-0.5 bg-neutral-200 rounded text-xs">${a}</span>`).join('')}</div>
+      </div>
+    ` : ''}
+  `;
+}
+
+function renderYarn(L, warpYarn) {
+  const filtered = YARN_DB.filter(y => y.cat === state.yarnCat);
+  return `
+    <div>
+      <label class="block text-sm font-medium mb-2">${L.yarnCategory}</label>
+      <div class="flex flex-wrap gap-2">
+        ${Object.keys(L.fiberCategories).map(c => `<button onclick="setState({yarnCat:'${c}'})" class="px-3 py-1.5 rounded-lg border text-sm ${state.yarnCat===c?'bg-neutral-900 text-white':'hover:border-neutral-400'}">${L.fiberCategories[c]}</button>`).join('')}
+      </div>
+    </div>
+    <div>
+      <label class="text-sm font-medium mb-2 block">${L.warpYarn}</label>
+      <select onchange="setState({warpYarnId:this.value})" class="w-full p-2 border rounded-lg text-sm">
+        ${filtered.map(y => `<option value="${y.id}" ${state.warpYarnId===y.id?'selected':''}>${y.name[state.lang]}</option>`).join('')}
+      </select>
+    </div>
+    <div>
+      <label class="text-sm font-medium mb-2 block">${L.weftYarn}</label>
+      <select onchange="setState({weftYarnId:this.value})" class="w-full p-2 border rounded-lg text-sm">
+        ${filtered.map(y => `<option value="${y.id}" ${state.weftYarnId===y.id?'selected':''}>${y.name[state.lang]}</option>`).join('')}
+      </select>
+    </div>
+    ${warpYarn ? `
+      <div class="bg-neutral-50 rounded-xl p-3">
+        <h4 class="font-medium text-sm mb-2">${L.warpYarn}: ${warpYarn.name[state.lang]}</h4>
+        <div class="text-xs text-neutral-600 mb-2">${getComp(warpYarn, state.lang)}</div>
+        <div class="grid grid-cols-3 gap-2 text-xs">
+          ${Object.entries(warpYarn.chars).slice(0,6).map(([k,v]) => `<div><div class="font-medium">${v}/5</div><div class="text-neutral-500">${L.characteristics[k]||k}</div></div>`).join('')}
+        </div>
+      </div>
+    ` : ''}
+  `;
+}
+
+function renderSpecs(L, weave, warpYarn, gsm, season, similar) {
+  const seasonLabel = season === 'ss' ? L.springSum : season === 'aw' ? L.autumnWin : L.allSeason;
+  const seasonColor = season === 'ss' ? 'bg-orange-100 text-orange-700' : season === 'aw' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700';
+  return `
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-1 tooltip" data-tip="Ends Per Inch">${L.epi}: <span class="font-bold">${state.epi}</span></label>
+        <input type="range" min="40" max="200" value="${state.epi}" onchange="setState({epi:+this.value})" class="w-full accent-neutral-900">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1 tooltip" data-tip="Picks Per Inch">${L.ppi}: <span class="font-bold">${state.ppi}</span></label>
+        <input type="range" min="40" max="200" value="${state.ppi}" onchange="setState({ppi:+this.value})" class="w-full accent-neutral-900">
+      </div>
+    </div>
+    ${gsm ? `
+      <div class="bg-neutral-100 rounded-xl p-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-lg font-bold tooltip" data-tip="Grams per Square Meter">${gsm.gsm} gsm</div>
+            <div class="text-sm text-neutral-600">${L.weightCat[gsm.cat]}</div>
+          </div>
+          <div class="px-3 py-1 rounded-full text-sm ${seasonColor}">${L.season}: ${seasonLabel}</div>
+        </div>
+      </div>
+    ` : ''}
+    <div class="bg-neutral-50 rounded-xl p-4 space-y-2">
+      <h4 class="font-medium">${L.fabricSummary}</h4>
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div><div class="text-neutral-500">${L.weaveType}</div><div class="font-medium">${weave?.name[state.lang]||'-'}</div></div>
+        <div><div class="text-neutral-500">${L.difficulty}</div><div class="font-medium">${'★'.repeat(weave?.diff||1)}</div></div>
+        <div><div class="text-neutral-500">${L.warpYarn}</div><div class="font-medium">${warpYarn?.name[state.lang]||'-'}</div></div>
+        <div><div class="text-neutral-500">${L.weftYarn}</div><div class="font-medium">${getYarn(state.weftYarnId)?.name[state.lang]||'-'}</div></div>
+      </div>
+    </div>
+    ${similar.length > 0 ? `
+      <div class="bg-blue-50 rounded-xl p-3">
+        <h4 class="font-medium text-sm mb-2">${L.similar}</h4>
+        <div class="flex flex-wrap gap-2">
+          ${similar.map(s => `<span class="px-2 py-1 bg-white rounded text-xs">${s.name[state.lang]}</span>`).join('')}
+        </div>
+      </div>
+    ` : ''}
+    <div class="flex gap-2">
+      <button onclick="downloadPng()" class="flex-1 px-4 py-2 rounded-xl bg-neutral-900 text-white text-sm font-medium">${L.savePng}</button>
+      <button onclick="setState({modal:'spec'})" class="flex-1 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium">${L.specSheet}</button>
+    </div>
+  `;
+}
+
+function renderTools(L) {
+  return `
+    <div class="grid grid-cols-2 gap-3">
+      <button onclick="setState({modal:'spec'})" class="p-4 rounded-xl border hover:border-neutral-400 text-left">
+        <div class="text-2xl mb-1">📄</div>
+        <div class="font-medium text-sm">${L.specSheet}</div>
+      </button>
+      <button onclick="toggleCompare()" class="p-4 rounded-xl border hover:border-neutral-400 text-left ${state.compareMode ? 'bg-blue-50 border-blue-400' : ''}">
+        <div class="text-2xl mb-1">⚖️</div>
+        <div class="font-medium text-sm">${L.compare}</div>
+      </button>
+      <button onclick="setState({modal:'glossary'})" class="p-4 rounded-xl border hover:border-neutral-400 text-left">
+        <div class="text-2xl mb-1">📖</div>
+        <div class="font-medium text-sm">${L.glossary}</div>
+      </button>
+      <button onclick="setState({modal:'pantone'})" class="p-4 rounded-xl border hover:border-neutral-400 text-left">
+        <div class="text-2xl mb-1">🎨</div>
+        <div class="font-medium text-sm">${L.pantone}</div>
+      </button>
+      <button onclick="setState({modal:'trend'})" class="p-4 rounded-xl border hover:border-neutral-400 text-left">
+        <div class="text-2xl mb-1">✨</div>
+        <div class="font-medium text-sm">${L.trend}</div>
+      </button>
+      <button onclick="applyRandom()" class="p-4 rounded-xl border hover:border-neutral-400 text-left">
+        <div class="text-2xl mb-1">🎲</div>
+        <div class="font-medium text-sm">${L.random}</div>
+      </button>
+    </div>
+  `;
+}
+
+function renderRiskModal(L, risks, colors) {
+  return `
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b">
+          <h3 class="font-bold text-lg">${L.riskAnalysis}</h3>
+          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center">×</button>
+        </div>
+        <div class="p-4 overflow-y-auto">
+          ${risks.risks.length === 0 ? `<p class="text-center py-8 text-neutral-500">${L.noRisk}</p>` : `
+            <div class="space-y-3">
+              ${risks.risks.map(r => `
+                <div class="p-3 rounded-lg border-l-4" style="border-color:${colors[r.level]};background:${colors[r.level]}10">
+                  <div class="flex items-center gap-2">
+                    <span class="text-lg">${r.icon}</span>
+                    <span class="font-medium">${r.title}</span>
+                    <span class="px-2 py-0.5 rounded text-xs text-white" style="background:${colors[r.level]}">${L.riskLevels[r.level]}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSellingModal(L) {
+  const yarn = getYarn(state.warpYarnId);
+  const weave = getWeave(state.weaveId);
+  const points = [];
+  if (yarn?.comp[0]?.f === 'cotton') points.push({ cat: state.lang==='ja'?'素材':'材质', title: state.lang==='ja'?'コットンの心地よさ':'棉花的舒适感' });
+  if (yarn?.comp[0]?.f === 'silk') points.push({ cat: state.lang==='ja'?'素材':'材质', title: state.lang==='ja'?'シルクの光沢':'丝绸的光泽' });
+  if (weave?.chars.drape >= 4) points.push({ cat: state.lang==='ja'?'織り':'织物', title: state.lang==='ja'?'優美なドレープ':'优美的垂感' });
+  if (weave?.chars.durability >= 4) points.push({ cat: state.lang==='ja'?'織り':'织物', title: state.lang==='ja'?'丈夫で長持ち':'经久耐用' });
+
+  return `
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b">
+          <h3 class="font-bold text-lg">${L.sellingPoints}</h3>
+          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center">×</button>
+        </div>
+        <div class="p-4 overflow-y-auto space-y-3">
+          ${points.map(p => `
+            <div class="p-3 bg-neutral-50 rounded-lg">
+              <span class="px-2 py-0.5 bg-neutral-200 rounded text-xs mr-2">${p.cat}</span>
+              <span class="font-medium">${p.title}</span>
+            </div>
+          `).join('')}
+          ${points.length === 0 ? `<p class="text-center py-8 text-neutral-500">...</p>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSpecModal(L, weave, warpYarn, gsm, season) {
+  const weftYarn = getYarn(state.weftYarnId);
+  const seasonLabel = season === 'ss' ? L.springSum : season === 'aw' ? L.autumnWin : L.allSeason;
+  const date = new Date().toLocaleDateString(state.lang === 'ja' ? 'ja-JP' : 'zh-CN');
+
+  return `
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b no-print">
+          <h3 class="font-bold text-lg">${L.specSheet}</h3>
+          <div class="flex gap-2">
+            <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-neutral-200 text-sm">${L.print}</button>
+            <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center">×</button>
+          </div>
+        </div>
+        <div class="p-6 overflow-y-auto" id="specContent">
+          <div class="flex justify-between items-start mb-6">
+            <div>
+              <h2 class="text-xl font-bold">${state.lang === 'ja' ? '生地仕様書' : '面料规格书'}</h2>
+              <p class="text-sm text-neutral-500">${date}</p>
+            </div>
+            <div class="text-right">
+              <div class="font-bold text-lg" style="color:#7cb342">JYUKO co.,ltd</div>
+            </div>
+          </div>
+
+          <table class="w-full border-collapse text-sm mb-6">
+            <tr class="border-b"><td class="py-2 text-neutral-500 w-1/3">${L.weaveType}</td><td class="py-2 font-medium">${weave?.name[state.lang]||'-'}</td></tr>
+            <tr class="border-b"><td class="py-2 text-neutral-500">${L.warpYarn}</td><td class="py-2 font-medium">${warpYarn?.name[state.lang]||'-'} (${getComp(warpYarn, state.lang)})</td></tr>
+            <tr class="border-b"><td class="py-2 text-neutral-500">${L.weftYarn}</td><td class="py-2 font-medium">${weftYarn?.name[state.lang]||'-'} (${getComp(weftYarn, state.lang)})</td></tr>
+            <tr class="border-b"><td class="py-2 text-neutral-500">${L.epi}</td><td class="py-2 font-medium">${state.epi}</td></tr>
+            <tr class="border-b"><td class="py-2 text-neutral-500">${L.ppi}</td><td class="py-2 font-medium">${state.ppi}</td></tr>
+            <tr class="border-b"><td class="py-2 text-neutral-500">${L.gsm}</td><td class="py-2 font-medium">${gsm?.gsm || '-'} g/m² (${L.weightCat[gsm?.cat]||'-'})</td></tr>
+            <tr class="border-b"><td class="py-2 text-neutral-500">${L.season}</td><td class="py-2 font-medium">${seasonLabel}</td></tr>
+            <tr class="border-b"><td class="py-2 text-neutral-500">${L.difficulty}</td><td class="py-2 font-medium">${'★'.repeat(weave?.diff||1)}</td></tr>
+          </table>
+
+          <div class="mb-4">
+            <h4 class="font-medium mb-2">${state.lang === 'ja' ? '使用色' : '使用颜色'}</h4>
+            <div class="flex gap-4">
+              <div>
+                <div class="text-xs text-neutral-500 mb-1">${L.warpColor}</div>
+                <div class="flex gap-1">
+                  ${state.warpColors.map(c => {
+                    const p = findNearestPantone(c);
+                    return `<div class="text-center"><div class="w-8 h-8 rounded border" style="background:${c}"></div><div class="text-xs mt-1">${p.code}</div></div>`;
+                  }).join('')}
+                </div>
+              </div>
+              <div>
+                <div class="text-xs text-neutral-500 mb-1">${L.weftColor}</div>
+                <div class="flex gap-1">
+                  ${state.weftColors.map(c => {
+                    const p = findNearestPantone(c);
+                    return `<div class="text-center"><div class="w-8 h-8 rounded border" style="background:${c}"></div><div class="text-xs mt-1">${p.code}</div></div>`;
+                  }).join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center text-xs text-neutral-400 mt-8">
+            Generated by JYUKO Fabric Simulator
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderGlossaryModal(L) {
+  const terms = GLOSSARY[state.lang] || GLOSSARY.ja;
+  return `
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b">
+          <h3 class="font-bold text-lg">${L.glossary}</h3>
+          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center">×</button>
+        </div>
+        <div class="p-4 overflow-y-auto max-h-[60vh] space-y-3">
+          ${Object.entries(terms).map(([term, def]) => `
+            <div class="p-3 bg-neutral-50 rounded-lg">
+              <div class="font-bold text-sm mb-1">${term}</div>
+              <div class="text-sm text-neutral-600">${def}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPantoneModal(L) {
+  const allColors = [...state.warpColors, ...state.weftColors];
+  return `
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b">
+          <h3 class="font-bold text-lg">${L.pantone}</h3>
+          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center">×</button>
+        </div>
+        <div class="p-4 overflow-y-auto space-y-4">
+          <p class="text-sm text-neutral-500">${L.nearestPantone}</p>
+          ${allColors.map(c => {
+            const p = findNearestPantone(c);
+            return `
+              <div class="flex items-center gap-4 p-3 bg-neutral-50 rounded-lg">
+                <div class="w-12 h-12 rounded-lg border" style="background:${c}"></div>
+                <div class="flex-1">
+                  <div class="text-xs text-neutral-500">HEX: ${c.toUpperCase()}</div>
+                  <div class="font-bold">${p.code}</div>
+                  <div class="text-sm">${p.name}</div>
+                </div>
+                <div class="w-12 h-12 rounded-lg border" style="background:${p.hex}"></div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderTrendModal(L) {
+  return `
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b">
+          <h3 class="font-bold text-lg">${L.trend} 2025</h3>
+          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center">×</button>
+        </div>
+        <div class="p-4 overflow-y-auto space-y-4">
+          <div>
+            <h4 class="font-medium mb-2">${L.springSum}</h4>
+            <div class="grid grid-cols-3 gap-2">
+              ${TREND_COLORS_2025.ss.map(c => `
+                <button onclick="applyTrendColor('${c.hex}')" class="p-2 rounded-lg border hover:border-neutral-400 text-center">
+                  <div class="w-full h-10 rounded mb-1" style="background:${c.hex}"></div>
+                  <div class="text-xs font-medium">${c.name[state.lang]}</div>
+                  <div class="text-xs text-neutral-500">${c.pantone}</div>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+          <div>
+            <h4 class="font-medium mb-2">${L.autumnWin}</h4>
+            <div class="grid grid-cols-3 gap-2">
+              ${TREND_COLORS_2025.aw.map(c => `
+                <button onclick="applyTrendColor('${c.hex}')" class="p-2 rounded-lg border hover:border-neutral-400 text-center">
+                  <div class="w-full h-10 rounded mb-1" style="background:${c.hex}"></div>
+                  <div class="text-xs font-medium">${c.name[state.lang]}</div>
+                  <div class="text-xs text-neutral-500">${c.pantone}</div>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// グローバル関数
+window.setState = setState;
+window.toggleEdit = (t, i) => setState({ editColor: state.editColor === t + i ? null : t + i });
+window.updColor = (t, i, c) => { const arr = t === 'warp' ? [...state.warpColors] : [...state.weftColors]; arr[i] = c; setState(t === 'warp' ? { warpColors: arr } : { weftColors: arr }); };
+window.addColor = t => { const arr = t === 'warp' ? [...state.warpColors] : [...state.weftColors]; if (arr.length < 8) arr.push(SWATCHES[Math.floor(Math.random() * SWATCHES.length)]); setState(t === 'warp' ? { warpColors: arr } : { weftColors: arr }); };
+window.removeColor = (t, i) => { const arr = t === 'warp' ? [...state.warpColors] : [...state.weftColors]; if (arr.length > 1) arr.splice(i, 1); setState(t === 'warp' ? { warpColors: arr } : { weftColors: arr }); };
+window.quickColor = hex => { const arr = state.warpColors.length < 2 ? [...state.warpColors, hex] : [state.warpColors[0], hex]; setState({ warpColors: arr }); };
+window.setWeaveCat = c => { const first = WEAVE_DB.find(w => w.cat === c); setState({ weaveCat: c, weaveId: first?.id || state.weaveId }); };
+window.downloadPng = () => { const c = document.getElementById('canvas') || document.getElementById('canvasA'); if (c) { const l = document.createElement('a'); l.download = `JYUKO_fabric_${state.weaveId}.png`; l.href = c.toDataURL('image/png'); l.click(); } };
+window.toggleCompare = () => { if (!state.compareMode) { setState({ compareMode: true, savedConfig: { ...state } }); } else { setState({ compareMode: false, savedConfig: null }); } };
+window.applyRandom = () => setState(randomGenerate());
+window.applyTrendColor = hex => { setState({ warpColors: [state.warpColors[0] || '#1d3557', hex], modal: null }); };
+
+// 初期描画
+render();
+</script>
+</body>
+</html>
