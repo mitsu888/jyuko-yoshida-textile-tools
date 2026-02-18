@@ -1574,7 +1574,7 @@ function drawFabric(ctx, w, h, config, withLogo = false) {
     if (config.pattern === 'solid' || config.pattern === 'stripe') {
       weftColor = config.weftColors[0];
     } else {
-      weftColor = config.weftColors[Math.floor(y / patternPitch) % config.weftColors.length];
+      weftColor = getArrangementColor(config.weftArrangement, config.weftColors, yIndex, patternPitch, y);
     }
 
     // 緯糸の描画（横方向）
@@ -1602,10 +1602,8 @@ function drawFabric(ctx, w, h, config, withLogo = false) {
     let warpColor;
     if (config.pattern === 'solid') {
       warpColor = config.warpColors[0];
-    } else if (config.pattern === 'stripe') {
-      warpColor = config.warpColors[Math.floor(x / patternPitch) % config.warpColors.length];
     } else {
-      warpColor = config.warpColors[Math.floor(x / patternPitch) % config.warpColors.length];
+      warpColor = getArrangementColor(config.warpArrangement, config.warpColors, xIndex, patternPitch, x);
     }
 
     // 経糸の描画（縦方向）
@@ -1693,9 +1691,70 @@ let state = {
   // 組織エディタ
   editorSize: 8,
   editorMatrix: null,
+  // 糸配列パターン（本数指定）
+  warpArrangement: null,  // null=均等, [{color,count},...]=カスタム
+  weftArrangement: null,
+  // Undo/Redo
+  undoStack: [],
+  redoStack: [],
 };
 
+// 配列パターンから糸インデックスに対応する色を取得
+function getArrangementColor(arrangement, colors, index, patternPitch, pos) {
+  if (arrangement && arrangement.length > 0) {
+    // 配列パターンの総本数
+    const totalCount = arrangement.reduce((s, a) => s + a.count, 0);
+    const mod = ((index % totalCount) + totalCount) % totalCount;
+    let acc = 0;
+    for (const a of arrangement) {
+      acc += a.count;
+      if (mod < acc) return a.color;
+    }
+    return arrangement[0].color;
+  }
+  // 従来の均等分割
+  return colors[Math.floor(pos / patternPitch) % colors.length];
+}
+
+// 配列パターンをcolorsから自動生成（各色1本）
+function autoArrangement(colors) {
+  return colors.map(c => ({ color: c, count: 1 }));
+}
+
+// 配列パターンから糸インデックスに対応する色を取得
+function getArrangementColor(arrangement, colors, index, patternPitch, pos) {
+  if (arrangement && arrangement.length > 0) {
+    // 配列パターンの総本数
+    const totalCount = arrangement.reduce((s, a) => s + a.count, 0);
+    const mod = ((index % totalCount) + totalCount) % totalCount;
+    let acc = 0;
+    for (const a of arrangement) {
+      acc += a.count;
+      if (mod < acc) return a.color;
+    }
+    return arrangement[0].color;
+  }
+  // 従来の均等分割
+  return colors[Math.floor(pos / patternPitch) % colors.length];
+}
+
+// 配列パターンをcolorsから自動生成（各色1本）
+function autoArrangement(colors) {
+  return colors.map(c => ({ color: c, count: 1 }));
+}
+
 function setState(ns) {
+  // Undo用スナップショット保存（UIのみの変更はスキップ）
+  const uiOnly = Object.keys(ns).every(k => ['tab','modal','editColor','undoStack','redoStack','compareMode','savedConfig'].includes(k));
+  if (!uiOnly && !ns._noUndo) {
+    const snap = {};
+    for (const k of ['pattern','checkPresetId','weaveId','weaveCat','warpColors','weftColors','warpYarnId','weftYarnId','yarnCat','pitch','zoom','epi','ppi','warpArrangement','weftArrangement']) {
+      snap[k] = Array.isArray(state[k]) ? [...state[k]] : state[k];
+    }
+    state.undoStack = [...(state.undoStack||[]).slice(-29), snap];
+    state.redoStack = [];
+  }
+  delete ns._noUndo;
   Object.assign(state, ns);
   // 糸カテゴリ変更時：選択中の糸がフィルタ外なら先頭に自動切替
   if (ns.yarnCat !== undefined) {
@@ -1847,7 +1906,9 @@ function render() {
       <div class="text-xs text-slate-500">先染めシミュレーター V3 — Yarn-Dyed Fabric Simulator</div>
     </footer>
 
-    ${state.modal === 'risk' ? renderRiskModal(L, risks, riskColors) : ''}
+    ${state.modal === 'arrangement' ? renderArrangementModal(L) :
+      state.modal === 'arrangement' ? renderArrangementModal(L) :
+      state.modal === 'risk' ? renderRiskModal(L, risks, riskColors) : ''}
     ${state.modal === 'selling' ? renderSellingModal(L) : ''}
     ${state.modal === 'spec' ? renderSpecModal(L, weave, warpYarn, weftYarn, gsm, physics, season) : ''}
     ${state.modal === 'glossary' ? renderGlossaryModal(L) : ''}
@@ -1936,9 +1997,12 @@ function renderDesign(L) {
       ${checkPresetPanel}
     </div>
     ${renderColorMgr('warp', L.warpColor, state.warpColors, L)}
-    <div class="flex justify-center">
+    <div class="flex justify-center gap-2">
       <button onclick="setState({weftColors:[...state.warpColors]})" class="px-3 py-1.5 rounded-lg text-xs btn-ghost flex items-center gap-1.5 hover:text-indigo-300" title="${state.lang==='ja'?'経糸の配色を緯糸にコピー':'将经纱配色复制到纬纱'}">
         <span>↓</span> ${state.lang==='ja'?'経→緯 配色コピー':'经→纬 复制配色'}
+      </button>
+      <button onclick="setState({modal:'arrangement'})" class="px-3 py-1.5 rounded-lg text-xs btn-ghost flex items-center gap-1.5 hover:text-indigo-300">
+        <span>🧵</span> ${state.lang==='ja'?'配列本数':'排列本数'}
       </button>
     </div>
     ${renderColorMgr('weft', L.weftColor, state.weftColors, L)}
@@ -1977,6 +2041,42 @@ function renderColorMgr(type, label, colors, L) {
   `;
 }
 
+// 織り組織ミニプレビュー付きボタン
+function renderWeaveButton(w, state, L) {
+  const sz = Math.min(w.rx, 8);
+  const sy = Math.min(w.ry, 8);
+  let svgCells = '';
+  for (let r = 0; r < sy; r++) {
+    for (let c = 0; c < sz; c++) {
+      const on = w.matrix[r % w.ry]?.[c % w.rx];
+      svgCells += '<rect x="'+(c*4)+'" y="'+(r*4)+'" width="3.5" height="3.5" rx="0.5" fill="'+(on ? '#94a3b8' : '#1e293b')+'"/>';
+    }
+  }
+  const isActive = state.weaveId === w.id;
+  return '<button onclick="setState({weaveId:\''+w.id+'\'})" class="p-2 rounded-lg text-left btn-ghost flex items-center gap-2 '+(isActive?'active':'')+'">'
+    + '<svg viewBox="0 0 '+(sz*4)+' '+(sy*4)+'" class="w-8 h-8 flex-shrink-0 rounded border border-slate-600/30" style="background:#0f172a">'+svgCells+'</svg>'
+    + '<div><div class="font-medium text-xs">'+w.name[state.lang]+'</div><div class="text-xs '+(isActive?'text-indigo-300':'text-slate-500')+'">'+'★'.repeat(w.diff)+'</div></div>'
+    + '</button>';
+}
+
+// 織り組織ミニプレビュー付きボタン
+function renderWeaveButton(w, state, L) {
+  const sz = Math.min(w.rx, 8);
+  const sy = Math.min(w.ry, 8);
+  let svgCells = '';
+  for (let r = 0; r < sy; r++) {
+    for (let c = 0; c < sz; c++) {
+      const on = w.matrix[r % w.ry]?.[c % w.rx];
+      svgCells += '<rect x="'+(c*4)+'" y="'+(r*4)+'" width="3.5" height="3.5" rx="0.5" fill="'+(on ? '#94a3b8' : '#1e293b')+'"/>';
+    }
+  }
+  const isActive = state.weaveId === w.id;
+  return '<button onclick="setState({weaveId:\''+w.id+'\'})" class="p-2 rounded-lg text-left btn-ghost flex items-center gap-2 '+(isActive?'active':'')+'">'
+    + '<svg viewBox="0 0 '+(sz*4)+' '+(sy*4)+'" class="w-8 h-8 flex-shrink-0 rounded border border-slate-600/30" style="background:#0f172a">'+svgCells+'</svg>'
+    + '<div><div class="font-medium text-xs">'+w.name[state.lang]+'</div><div class="text-xs '+(isActive?'text-indigo-300':'text-slate-500')+'">'+'★'.repeat(w.diff)+'</div></div>'
+    + '</button>';
+}
+
 function renderWeave(L, weave) {
   const filtered = WEAVE_DB.filter(w => w.cat === state.weaveCat);
   return `
@@ -1989,7 +2089,7 @@ function renderWeave(L, weave) {
     <div>
       <label class="block text-sm font-medium mb-2 text-slate-300">${L.selectWeave}</label>
       <div class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
-        ${filtered.map(w => `<button onclick="setState({weaveId:'${w.id}'})" class="p-3 rounded-lg text-left btn-ghost ${state.weaveId===w.id?'active':''}"><div class="font-medium text-sm">${w.name[state.lang]}</div><div class="text-xs ${state.weaveId===w.id?'text-indigo-300':'text-slate-500'}">${'★'.repeat(w.diff)}</div></button>`).join('')}
+        ${filtered.map(w => renderWeaveButton(w, state, L)).join('')}
       </div>
     </div>
     ${weave ? `
@@ -2152,8 +2252,110 @@ function renderTools(L) {
         <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">🎲</div>
         <div class="font-medium text-sm">${L.random}</div>
       </button>
+      <button onclick="shareURL()" id="shareBtn" class="p-4 rounded-xl btn-ghost text-left group">
+        <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">🔗</div>
+        <div class="font-medium text-sm">${state.lang==='ja'?'URL共有':'URL分享'}</div>
+      </button>
+      <button onclick="undoState()" class="p-4 rounded-xl btn-ghost text-left group ${(state.undoStack||[]).length===0?'opacity-30':''}">
+        <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">↩️</div>
+        <div class="font-medium text-sm">Undo</div>
+      </button>
     </div>
   `;
+}
+
+// 配列パターンエディタモーダル
+function renderArrangementModal(L) {
+  const ja = state.lang === 'ja';
+  const warpArr = state.warpArrangement || autoArrangement(state.warpColors);
+  const weftArr = state.weftArrangement || autoArrangement(state.weftColors);
+  
+  function renderArrEditor(type, arr, label) {
+    const total = arr.reduce((s, a) => s + a.count, 0);
+    const barWidth = 200;
+    let barHtml = '';
+    let offset = 0;
+    for (const a of arr) {
+      const w = (a.count / total) * barWidth;
+      barHtml += '<div style="width:'+w+'px;height:20px;background:'+a.color+'" class="inline-block border-r border-white/20" title="'+a.count+(ja?'本':'根')+'"></div>';
+    }
+    return '<div class="mb-4"><h4 class="text-sm font-medium text-slate-300 mb-2">'+label+' ('+total+(ja?'本リピート':'根循环')+')</h4>'
+      + '<div class="flex rounded overflow-hidden mb-2" style="width:'+barWidth+'px">'+barHtml+'</div>'
+      + '<div class="space-y-1.5">'
+      + arr.map((a, i) => '<div class="flex items-center gap-2"><div class="w-6 h-6 rounded border border-white/20" style="background:'+a.color+'"></div>'
+        + '<button onclick="changeArrCount(\''+type+'\','+i+',-1)" class="w-6 h-6 rounded btn-ghost text-xs">−</button>'
+        + '<span class="text-sm font-bold text-white w-8 text-center">'+a.count+'</span>'
+        + '<button onclick="changeArrCount(\''+type+'\','+i+',1)" class="w-6 h-6 rounded btn-ghost text-xs">+</button>'
+        + '<span class="text-xs text-slate-500">'+(ja?'本':'根')+'</span>'
+        + (arr.length > 1 ? '<button onclick="removeArrItem(\''+type+'\','+i+')" class="text-red-400 text-xs ml-auto">✕</button>' : '')
+        + '</div>').join('')
+      + '</div>'
+      + '<button onclick="addArrItem(\''+type+'\')" class="mt-2 px-2 py-1 text-xs btn-ghost rounded">+ '+(ja?'色追加':'添加颜色')+'</button>'
+      + '</div>';
+  }
+  
+  return '<div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">'
+    + '<div class="modal-content rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden animate-in">'
+    + '<div class="p-4 border-b border-slate-700/50 flex items-center justify-between">'
+    + '<h3 class="font-bold text-white">'+(ja?'🧵 糸配列パターンエディタ':'🧵 纱线排列编辑器')+'</h3>'
+    + '<button onclick="setState({modal:null})" class="text-slate-400 hover:text-white text-xl">✕</button>'
+    + '</div>'
+    + '<div class="p-4 overflow-y-auto space-y-4">'
+    + '<p class="text-xs text-slate-400">'+(ja?'各色の本数を指定してリピートパターンを設定します':'指定每种颜色的根数来设定循环')+'</p>'
+    + renderArrEditor('warp', warpArr, ja ? '経糸 (タテ)' : '经纱 (纵)')
+    + renderArrEditor('weft', weftArr, ja ? '緯糸 (ヨコ)' : '纬纱 (横)')
+    + '<div class="flex gap-2 pt-2">'
+    + '<button onclick="applyArrangement()" class="flex-1 px-4 py-2 rounded-xl btn-primary text-sm">'+(ja?'適用':'应用')+'</button>'
+    + '<button onclick="resetArrangement()" class="px-4 py-2 rounded-xl btn-ghost text-sm">'+(ja?'均等に戻す':'恢复均等')+'</button>'
+    + '</div>'
+    + '</div></div></div>';
+}
+
+// 配列パターンエディタモーダル
+function renderArrangementModal(L) {
+  const ja = state.lang === 'ja';
+  const warpArr = state.warpArrangement || autoArrangement(state.warpColors);
+  const weftArr = state.weftArrangement || autoArrangement(state.weftColors);
+  
+  function renderArrEditor(type, arr, label) {
+    const total = arr.reduce((s, a) => s + a.count, 0);
+    const barWidth = 200;
+    let barHtml = '';
+    let offset = 0;
+    for (const a of arr) {
+      const w = (a.count / total) * barWidth;
+      barHtml += '<div style="width:'+w+'px;height:20px;background:'+a.color+'" class="inline-block border-r border-white/20" title="'+a.count+(ja?'本':'根')+'"></div>';
+    }
+    return '<div class="mb-4"><h4 class="text-sm font-medium text-slate-300 mb-2">'+label+' ('+total+(ja?'本リピート':'根循环')+')</h4>'
+      + '<div class="flex rounded overflow-hidden mb-2" style="width:'+barWidth+'px">'+barHtml+'</div>'
+      + '<div class="space-y-1.5">'
+      + arr.map((a, i) => '<div class="flex items-center gap-2"><div class="w-6 h-6 rounded border border-white/20" style="background:'+a.color+'"></div>'
+        + '<button onclick="changeArrCount(\''+type+'\','+i+',-1)" class="w-6 h-6 rounded btn-ghost text-xs">−</button>'
+        + '<span class="text-sm font-bold text-white w-8 text-center">'+a.count+'</span>'
+        + '<button onclick="changeArrCount(\''+type+'\','+i+',1)" class="w-6 h-6 rounded btn-ghost text-xs">+</button>'
+        + '<span class="text-xs text-slate-500">'+(ja?'本':'根')+'</span>'
+        + (arr.length > 1 ? '<button onclick="removeArrItem(\''+type+'\','+i+')" class="text-red-400 text-xs ml-auto">✕</button>' : '')
+        + '</div>').join('')
+      + '</div>'
+      + '<button onclick="addArrItem(\''+type+'\')" class="mt-2 px-2 py-1 text-xs btn-ghost rounded">+ '+(ja?'色追加':'添加颜色')+'</button>'
+      + '</div>';
+  }
+  
+  return '<div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">'
+    + '<div class="modal-content rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden animate-in">'
+    + '<div class="p-4 border-b border-slate-700/50 flex items-center justify-between">'
+    + '<h3 class="font-bold text-white">'+(ja?'🧵 糸配列パターンエディタ':'🧵 纱线排列编辑器')+'</h3>'
+    + '<button onclick="setState({modal:null})" class="text-slate-400 hover:text-white text-xl">✕</button>'
+    + '</div>'
+    + '<div class="p-4 overflow-y-auto space-y-4">'
+    + '<p class="text-xs text-slate-400">'+(ja?'各色の本数を指定してリピートパターンを設定します':'指定每种颜色的根数来设定循环')+'</p>'
+    + renderArrEditor('warp', warpArr, ja ? '経糸 (タテ)' : '经纱 (纵)')
+    + renderArrEditor('weft', weftArr, ja ? '緯糸 (ヨコ)' : '纬纱 (横)')
+    + '<div class="flex gap-2 pt-2">'
+    + '<button onclick="applyArrangement()" class="flex-1 px-4 py-2 rounded-xl btn-primary text-sm">'+(ja?'適用':'应用')+'</button>'
+    + '<button onclick="resetArrangement()" class="px-4 py-2 rounded-xl btn-ghost text-sm">'+(ja?'均等に戻す':'恢复均等')+'</button>'
+    + '</div>'
+    + '</div></div></div>';
 }
 
 function renderRiskModal(L, risks, colors) {
@@ -2693,6 +2895,90 @@ window.addColor = t => { const arr = t === 'warp' ? [...state.warpColors] : [...
 window.removeColor = (t, i) => { const arr = t === 'warp' ? [...state.warpColors] : [...state.weftColors]; if (arr.length > 1) arr.splice(i, 1); setState(t === 'warp' ? { warpColors: arr } : { weftColors: arr }); };
 window.quickColor = hex => { const arr = state.warpColors.length < 2 ? [...state.warpColors, hex] : [state.warpColors[0], hex]; setState({ warpColors: arr }); };
 window.setWeaveCat = c => { const first = WEAVE_DB.find(w => w.cat === c); setState({ weaveCat: c, weaveId: first?.id || state.weaveId }); };
+window.shareURL = () => {
+  const params = new URLSearchParams();
+  params.set('p', state.pattern);
+  params.set('w', state.weaveId);
+  params.set('wc', state.warpColors.join(','));
+  params.set('fc', state.weftColors.join(','));
+  params.set('wy', state.warpYarnId);
+  params.set('fy', state.weftYarnId);
+  params.set('e', state.epi);
+  params.set('pp', state.ppi);
+  params.set('pt', state.pitch);
+  params.set('z', state.zoom);
+  if (state.warpArrangement) params.set('wa', JSON.stringify(state.warpArrangement));
+  if (state.weftArrangement) params.set('fa', JSON.stringify(state.weftArrangement));
+  const url = location.origin + location.pathname + '?' + params.toString();
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('shareBtn');
+    if (btn) { btn.textContent = state.lang === 'ja' ? '✅ コピー済み' : '✅ 已复制'; setTimeout(() => { btn.textContent = state.lang === 'ja' ? '🔗 URL共有' : '🔗 URL分享'; }, 2000); }
+  });
+};
+window.undoState = () => {
+  if (state.undoStack && state.undoStack.length > 0) {
+    const snap = state.undoStack[state.undoStack.length - 1];
+    const redoSnap = {};
+    for (const k of Object.keys(snap)) { redoSnap[k] = Array.isArray(state[k]) ? [...state[k]] : state[k]; }
+    state.undoStack = state.undoStack.slice(0, -1);
+    state.redoStack = [...(state.redoStack||[]), redoSnap];
+    Object.assign(state, snap, { _noUndo: true });
+    render();
+  }
+};
+window.redoState = () => {
+  if (state.redoStack && state.redoStack.length > 0) {
+    const snap = state.redoStack[state.redoStack.length - 1];
+    const undoSnap = {};
+    for (const k of Object.keys(snap)) { undoSnap[k] = Array.isArray(state[k]) ? [...state[k]] : state[k]; }
+    state.redoStack = state.redoStack.slice(0, -1);
+    state.undoStack = [...(state.undoStack||[]), undoSnap];
+    Object.assign(state, snap, { _noUndo: true });
+    render();
+  }
+};
+window.shareURL = () => {
+  const params = new URLSearchParams();
+  params.set('p', state.pattern);
+  params.set('w', state.weaveId);
+  params.set('wc', state.warpColors.join(','));
+  params.set('fc', state.weftColors.join(','));
+  params.set('wy', state.warpYarnId);
+  params.set('fy', state.weftYarnId);
+  params.set('e', state.epi);
+  params.set('pp', state.ppi);
+  params.set('pt', state.pitch);
+  params.set('z', state.zoom);
+  if (state.warpArrangement) params.set('wa', JSON.stringify(state.warpArrangement));
+  if (state.weftArrangement) params.set('fa', JSON.stringify(state.weftArrangement));
+  const url = location.origin + location.pathname + '?' + params.toString();
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('shareBtn');
+    if (btn) { btn.textContent = state.lang === 'ja' ? '✅ コピー済み' : '✅ 已复制'; setTimeout(() => { btn.textContent = state.lang === 'ja' ? '🔗 URL共有' : '🔗 URL分享'; }, 2000); }
+  });
+};
+window.undoState = () => {
+  if (state.undoStack && state.undoStack.length > 0) {
+    const snap = state.undoStack[state.undoStack.length - 1];
+    const redoSnap = {};
+    for (const k of Object.keys(snap)) { redoSnap[k] = Array.isArray(state[k]) ? [...state[k]] : state[k]; }
+    state.undoStack = state.undoStack.slice(0, -1);
+    state.redoStack = [...(state.redoStack||[]), redoSnap];
+    Object.assign(state, snap, { _noUndo: true });
+    render();
+  }
+};
+window.redoState = () => {
+  if (state.redoStack && state.redoStack.length > 0) {
+    const snap = state.redoStack[state.redoStack.length - 1];
+    const undoSnap = {};
+    for (const k of Object.keys(snap)) { undoSnap[k] = Array.isArray(state[k]) ? [...state[k]] : state[k]; }
+    state.redoStack = state.redoStack.slice(0, -1);
+    state.undoStack = [...(state.undoStack||[]), undoSnap];
+    Object.assign(state, snap, { _noUndo: true });
+    render();
+  }
+};
 window.downloadPng = () => { const c = document.getElementById('canvas') || document.getElementById('canvasA'); if (c) { const l = document.createElement('a'); l.download = `JYUKO_fabric_${state.weaveId}.png`; l.href = c.toDataURL('image/png'); l.click(); } };
 window.toggleCompare = () => { if (!state.compareMode) { setState({ compareMode: true, savedConfig: { ...state } }); } else { setState({ compareMode: false, savedConfig: null }); } };
 window.swapCompare = () => {
@@ -2710,6 +2996,66 @@ window.swapCompare = () => {
   }
 };
 window.applyRandom = () => setState(randomGenerate());
+window.changeArrCount = (type, idx, delta) => {
+  const key = type + 'Arrangement';
+  const colors = type === 'warp' ? state.warpColors : state.weftColors;
+  const arr = [...(state[key] || autoArrangement(colors))];
+  arr[idx] = { ...arr[idx], count: Math.max(1, arr[idx].count + delta) };
+  setState({ [key]: arr, _noUndo: true });
+};
+window.removeArrItem = (type, idx) => {
+  const key = type + 'Arrangement';
+  const colors = type === 'warp' ? state.warpColors : state.weftColors;
+  const arr = [...(state[key] || autoArrangement(colors))];
+  if (arr.length > 1) arr.splice(idx, 1);
+  setState({ [key]: arr, _noUndo: true });
+};
+window.addArrItem = (type) => {
+  const key = type + 'Arrangement';
+  const colors = type === 'warp' ? state.warpColors : state.weftColors;
+  const arr = [...(state[key] || autoArrangement(colors))];
+  arr.push({ color: SWATCHES[Math.floor(Math.random() * SWATCHES.length)], count: 1 });
+  // 色も追加
+  const colKey = type + 'Colors';
+  const newColors = [...state[colKey], arr[arr.length-1].color];
+  setState({ [key]: arr, [colKey]: newColors, _noUndo: true });
+};
+window.applyArrangement = () => {
+  const warpArr = state.warpArrangement || autoArrangement(state.warpColors);
+  const weftArr = state.weftArrangement || autoArrangement(state.weftColors);
+  setState({ warpArrangement: warpArr, weftArrangement: weftArr, warpColors: warpArr.map(a=>a.color), weftColors: weftArr.map(a=>a.color), modal: null });
+};
+window.resetArrangement = () => setState({ warpArrangement: null, weftArrangement: null, modal: null });
+window.changeArrCount = (type, idx, delta) => {
+  const key = type + 'Arrangement';
+  const colors = type === 'warp' ? state.warpColors : state.weftColors;
+  const arr = [...(state[key] || autoArrangement(colors))];
+  arr[idx] = { ...arr[idx], count: Math.max(1, arr[idx].count + delta) };
+  setState({ [key]: arr, _noUndo: true });
+};
+window.removeArrItem = (type, idx) => {
+  const key = type + 'Arrangement';
+  const colors = type === 'warp' ? state.warpColors : state.weftColors;
+  const arr = [...(state[key] || autoArrangement(colors))];
+  if (arr.length > 1) arr.splice(idx, 1);
+  setState({ [key]: arr, _noUndo: true });
+};
+window.addArrItem = (type) => {
+  const key = type + 'Arrangement';
+  const colors = type === 'warp' ? state.warpColors : state.weftColors;
+  const arr = [...(state[key] || autoArrangement(colors))];
+  arr.push({ color: SWATCHES[Math.floor(Math.random() * SWATCHES.length)], count: 1 });
+  // 色も追加
+  const colKey = type + 'Colors';
+  const newColors = [...state[colKey], arr[arr.length-1].color];
+  setState({ [key]: arr, [colKey]: newColors, _noUndo: true });
+};
+window.applyArrangement = () => {
+  const warpArr = state.warpArrangement || autoArrangement(state.warpColors);
+  const weftArr = state.weftArrangement || autoArrangement(state.weftColors);
+  setState({ warpArrangement: warpArr, weftArrangement: weftArr, warpColors: warpArr.map(a=>a.color), weftColors: weftArr.map(a=>a.color), modal: null });
+};
+window.resetArrangement = () => setState({ warpArrangement: null, weftArrangement: null, modal: null });
 window.applyTrendColor = hex => { setState({ warpColors: [state.warpColors[0] || '#1d3557', hex], modal: null }); };
 
 // チェック柄プリセット適用
@@ -2808,6 +3154,58 @@ window.applyCustomWeave = () => {
 };
 
 // 初期描画
+// URL パラメータから状態を復元
+(function loadFromURL() {
+  const p = new URLSearchParams(location.search);
+  if (p.has('p')) state.pattern = p.get('p');
+  if (p.has('w')) state.weaveId = p.get('w');
+  if (p.has('wc')) state.warpColors = p.get('wc').split(',');
+  if (p.has('fc')) state.weftColors = p.get('fc').split(',');
+  if (p.has('wy')) state.warpYarnId = p.get('wy');
+  if (p.has('fy')) state.weftYarnId = p.get('fy');
+  if (p.has('e')) state.epi = +p.get('e');
+  if (p.has('pp')) state.ppi = +p.get('pp');
+  if (p.has('pt')) state.pitch = +p.get('pt');
+  if (p.has('z')) state.zoom = +p.get('z');
+  if (p.has('wa')) try { state.warpArrangement = JSON.parse(p.get('wa')); } catch(e) {}
+  if (p.has('fa')) try { state.weftArrangement = JSON.parse(p.get('fa')); } catch(e) {}
+  // weaveCat / yarnCat を自動設定
+  const w = getWeave(state.weaveId); if (w) state.weaveCat = w.cat;
+  const y = getYarn(state.warpYarnId); if (y) state.yarnCat = y.cat;
+})();
+
+// キーボードショートカット
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoState(); }
+  if ((e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redoState(); }
+});
+
+// URL パラメータから状態を復元
+(function loadFromURL() {
+  const p = new URLSearchParams(location.search);
+  if (p.has('p')) state.pattern = p.get('p');
+  if (p.has('w')) state.weaveId = p.get('w');
+  if (p.has('wc')) state.warpColors = p.get('wc').split(',');
+  if (p.has('fc')) state.weftColors = p.get('fc').split(',');
+  if (p.has('wy')) state.warpYarnId = p.get('wy');
+  if (p.has('fy')) state.weftYarnId = p.get('fy');
+  if (p.has('e')) state.epi = +p.get('e');
+  if (p.has('pp')) state.ppi = +p.get('pp');
+  if (p.has('pt')) state.pitch = +p.get('pt');
+  if (p.has('z')) state.zoom = +p.get('z');
+  if (p.has('wa')) try { state.warpArrangement = JSON.parse(p.get('wa')); } catch(e) {}
+  if (p.has('fa')) try { state.weftArrangement = JSON.parse(p.get('fa')); } catch(e) {}
+  // weaveCat / yarnCat を自動設定
+  const w = getWeave(state.weaveId); if (w) state.weaveCat = w.cat;
+  const y = getYarn(state.warpYarnId); if (y) state.yarnCat = y.cat;
+})();
+
+// キーボードショートカット
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoState(); }
+  if ((e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redoState(); }
+});
+
 render();
 </script>
 </body>
