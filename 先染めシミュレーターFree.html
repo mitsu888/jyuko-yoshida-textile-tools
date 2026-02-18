@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>先染めシミュレーター V3 | 色织模拟器</title>
+  <title>先染めシミュレーター Free | 色织模拟器 Free</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -210,7 +210,14 @@
 
 <script>
 // ============================================================
-// V3: 物理計算ベースの先染めシミュレーター
+// FREE版: 先染めシミュレーター (機能制限版)
+// Pro版（全機能版）のお問い合わせ: mitsunori_yoshida_8@hotmail.com
+
+const IS_FREE = true;
+const FREE_YARN_LIMIT = 20;      // 糸は各カテゴリ最大20種
+const FREE_CHECK_LIMIT = 5;      // チェック柄プリセットは5つまで
+const FREE_COLOR_LIMIT = 4;      // 配色は最大4色
+const LOCKED_TOOLS = ["cost", "library", "orderSheet", "weaveEditor", "spec"]; // Pro限定ツール
 // ============================================================
 
 // 繊維の物理定数
@@ -403,7 +410,7 @@ const SIMILAR_FABRICS = [
 // ============================================================
 const LANG = {
   ja: {
-    title: '先染めシミュレーター V3',
+    title: '先染めシミュレーター Free',
     subtitle: '物理計算ベースのリアルタイムプレビュー',
     tabs: { design: 'デザイン', weave: '織り組織', yarn: '糸選択', specs: '規格', tools: 'ツール' },
     pattern: 'パターン',
@@ -1571,7 +1578,7 @@ function drawFabric(ctx, w, h, config, withLogo = false) {
   for (let y = 0; y < h + weftSpacing; y += weftSpacing) {
     const yIndex = Math.floor(y / weftSpacing);
     let weftColor;
-    if (config.pattern === 'solid' || config.pattern === 'stripe') {
+    if (config.pattern === 'solid') {
       weftColor = config.weftColors[0];
     } else {
       weftColor = config.weftColors[Math.floor(y / patternPitch) % config.weftColors.length];
@@ -1697,21 +1704,63 @@ let state = {
 
 function setState(ns) {
   Object.assign(state, ns);
-  // 糸カテゴリ変更時：選択中の糸がフィルタ外なら先頭に自動切替
-  if (ns.yarnCat !== undefined) {
-    const catYarns = YARN_DB.filter(y => y.cat === state.yarnCat);
-    if (catYarns.length > 0) {
-      const ids = catYarns.map(y => y.id);
-      if (!ids.includes(state.warpYarnId)) state.warpYarnId = catYarns[0].id;
-      if (!ids.includes(state.weftYarnId)) state.weftYarnId = catYarns[0].id;
-    }
-  }
   render();
 }
 
 // ============================================================
 // レンダリング関数
 // ============================================================
+
+
+// ============================================================
+// FREE版 制限ヘルパー
+// ============================================================
+function isToolLocked(toolId) {
+  return IS_FREE && LOCKED_TOOLS.includes(toolId);
+}
+function tryOpenTool(toolId) {
+  if (isToolLocked(toolId)) { setState({modal: "upgrade"}); return; }
+  setState({modal: toolId});
+}
+function getFilteredYarns(cat) {
+  const all = YARN_DB.filter(y => y.cat === cat);
+  return IS_FREE ? all.slice(0, FREE_YARN_LIMIT) : all;
+}
+function getFilteredCheckPatterns(cat) {
+  const all = CHECK_PATTERNS.filter(p => p.cat === cat);
+  return IS_FREE ? all.slice(0, FREE_CHECK_LIMIT) : all;
+}
+function renderUpgradeModal(L) {
+  const lang = state.lang;
+  return `
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
+      <div class="modal-content rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in">
+        <div class="p-6 text-center">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+            <span class="text-3xl">👑</span>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">${lang === "ja" ? "Pro版で全機能を解放" : "解锁Pro版全部功能"}</h3>
+          <p class="text-slate-400 text-sm mb-4">${lang === "ja" ? "この機能はPro版限定です" : "此功能仅限Pro版使用"}</p>
+          <div class="text-left glass-light rounded-xl p-4 mb-4">
+            <div class="text-sm text-slate-300 space-y-2">
+              <div class="flex items-center gap-2"><span class="text-green-400">✓</span>${lang === "ja" ? "全134種の糸データベース" : "全134种纱线数据库"}</div>
+              <div class="flex items-center gap-2"><span class="text-green-400">✓</span>${lang === "ja" ? "全35種のチェック柄プリセット" : "全35种格纹预设"}</div>
+              <div class="flex items-center gap-2"><span class="text-green-400">✓</span>${lang === "ja" ? "原価計算・発注書・仕様書出力" : "成本计算·订单·规格书输出"}</div>
+              <div class="flex items-center gap-2"><span class="text-green-400">✓</span>${lang === "ja" ? "組織エディタ・ライブラリ保存" : "组织编辑器·收藏夹保存"}</div>
+              <div class="flex items-center gap-2"><span class="text-green-400">✓</span>${lang === "ja" ? "配色8色まで・ウォーターマークなし" : "配色最多8色·无水印"}</div>
+            </div>
+          </div>
+          <a href="mailto:mitsunori_yoshida_8@hotmail.com?subject=Pro版お問い合わせ" class="block w-full px-4 py-3 rounded-xl btn-primary text-sm font-medium mb-2">
+            ${lang === "ja" ? "📧 Pro版のお問い合わせ" : "📧 咨询Pro版"}
+          </a>
+          <button onclick="setState({modal:null})" class="w-full px-4 py-2 rounded-xl btn-ghost text-sm">
+            ${lang === "ja" ? "閉じる" : "关闭"}
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
 function render() {
   const L = LANG[state.lang];
@@ -1776,12 +1825,9 @@ function render() {
         </div>
 
         ${state.compareMode && state.savedConfig ? `
-          <div class="grid grid-cols-2 gap-2 mb-2 items-center">
+          <div class="grid grid-cols-2 gap-2 mb-2">
             <div class="text-center text-sm font-medium text-slate-300">${L.fabricA} (${L.current})</div>
             <div class="text-center text-sm font-medium text-slate-300">${L.fabricB}</div>
-          </div>
-          <div class="flex justify-center mb-2">
-            <button onclick="swapCompare()" class="px-3 py-1 rounded-lg text-xs btn-ghost flex items-center gap-1">⇄ ${state.lang==='ja'?'A↔B 入替':'A↔B swap'}</button>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <canvas id="canvasA" class="rounded-xl border border-slate-700/50 shadow-inner w-full"></canvas>
@@ -1844,10 +1890,12 @@ function render() {
 
     <!-- フッター -->
     <footer class="mt-8 py-4 text-center no-print">
-      <div class="text-xs text-slate-500">先染めシミュレーター V3 — Yarn-Dyed Fabric Simulator</div>
+      <div class="text-xs text-slate-500">先染めシミュレーター Free — Yarn-Dyed Fabric Simulator</div>
     </footer>
 
-    ${state.modal === 'risk' ? renderRiskModal(L, risks, riskColors) : ''}
+    ${state.modal === 'upgrade' ? renderUpgradeModal(L) :
+      state.modal === 'upgrade' ? renderUpgradeModal(L) :
+      state.modal === 'risk' ? renderRiskModal(L, risks, riskColors) : ''}
     ${state.modal === 'selling' ? renderSellingModal(L) : ''}
     ${state.modal === 'spec' ? renderSpecModal(L, weave, warpYarn, weftYarn, gsm, physics, season) : ''}
     ${state.modal === 'glossary' ? renderGlossaryModal(L) : ''}
@@ -1879,9 +1927,7 @@ function render() {
       const canvas = document.getElementById('canvas');
       if (canvas) {
         const dpr = window.devicePixelRatio || 1;
-        const container = canvas.parentElement;
-        const maxW = container ? Math.min(container.clientWidth, 600) : 500;
-        const w = maxW, h = maxW;
+        const w = 500, h = 500;
         canvas.width = w * dpr; canvas.height = h * dpr;
         canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
         const ctx = canvas.getContext('2d');
@@ -1936,11 +1982,6 @@ function renderDesign(L) {
       ${checkPresetPanel}
     </div>
     ${renderColorMgr('warp', L.warpColor, state.warpColors, L)}
-    <div class="flex justify-center">
-      <button onclick="setState({weftColors:[...state.warpColors]})" class="px-3 py-1.5 rounded-lg text-xs btn-ghost flex items-center gap-1.5 hover:text-indigo-300" title="${state.lang==='ja'?'経糸の配色を緯糸にコピー':'将经纱配色复制到纬纱'}">
-        <span>↓</span> ${state.lang==='ja'?'経→緯 配色コピー':'经→纬 复制配色'}
-      </button>
-    </div>
     ${renderColorMgr('weft', L.weftColor, state.weftColors, L)}
     <div>
       <label class="block text-sm font-medium mb-1 text-slate-300">${L.pitch}: <span class="font-bold text-white">${state.pitch}px</span></label>
@@ -1964,7 +2005,7 @@ function renderColorMgr(type, label, colors, L) {
             <button class="w-10 h-10 rounded-lg border-2 border-white/10 shadow-lg hover:border-white/30 hover:scale-105 transition-all" style="background:${c};box-shadow:0 2px 10px ${c}40" onclick="toggleEdit('${type}',${i})"></button>
             ${colors.length > 1 ? `<button onclick="removeColor('${type}',${i})" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity">×</button>` : ''}
             ${state.editColor === type + i ? `
-              <div class="absolute top-12 z-20 glass rounded-xl shadow-2xl p-3 border border-slate-600/30" style="min-width:180px;right:0;transform:translateX(min(0px, calc(100vw - 100% - 16px)))">
+              <div class="absolute top-12 left-0 z-20 glass rounded-xl shadow-2xl p-3 border border-slate-600/30" style="min-width:180px">
                 <input type="color" value="${c}" onchange="updColor('${type}',${i},this.value)" class="w-full h-8 mb-2 rounded-lg">
                 <div class="grid grid-cols-5 gap-1">${SWATCHES.slice(0,15).map(hex => `<button class="color-swatch w-6 h-6 rounded-md" style="background:${hex}" onclick="updColor('${type}',${i},'${hex}');setState({editColor:null})"></button>`).join('')}</div>
               </div>
@@ -2005,7 +2046,7 @@ function renderWeave(L, weave) {
 }
 
 function renderYarn(L, warpYarn, weftYarn) {
-  const filtered = YARN_DB.filter(y => y.cat === state.yarnCat);
+  const filtered = getFilteredYarns(state.yarnCat);
   const physics = calcPhysicsInfo(state);
 
   return `
@@ -2052,19 +2093,13 @@ function renderSpecs(L, weave, warpYarn, weftYarn, gsm, physics, season, similar
   return `
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium mb-1 text-slate-300 tooltip" data-tip="Ends Per Inch">${L.epi}</label>
-        <div class="flex items-center gap-2">
-          <input type="range" min="30" max="${Math.min(250, warpMax + 20)}" value="${state.epi}" oninput="setState({epi:+this.value})" class="flex-1">
-          <input type="number" min="30" max="250" value="${state.epi}" onchange="setState({epi:Math.max(30,Math.min(250,+this.value))})" class="w-16 px-2 py-1 rounded-lg text-sm text-center font-bold ${physics?.warpOverLimit ? 'text-red-400 border-red-500/50' : 'text-white'}" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1)">
-        </div>
+        <label class="block text-sm font-medium mb-1 text-slate-300 tooltip" data-tip="Ends Per Inch">${L.epi}: <span class="font-bold ${physics?.warpOverLimit ? 'text-red-400' : 'text-white'}">${state.epi}</span></label>
+        <input type="range" min="30" max="${Math.min(250, warpMax + 20)}" value="${state.epi}" onchange="setState({epi:+this.value})" class="w-full">
         <div class="text-xs text-slate-500">${L.recommended}: 40-${warpMax}</div>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1 text-slate-300 tooltip" data-tip="Picks Per Inch">${L.ppi}</label>
-        <div class="flex items-center gap-2">
-          <input type="range" min="30" max="${Math.min(250, weftMax + 20)}" value="${state.ppi}" oninput="setState({ppi:+this.value})" class="flex-1">
-          <input type="number" min="30" max="250" value="${state.ppi}" onchange="setState({ppi:Math.max(30,Math.min(250,+this.value))})" class="w-16 px-2 py-1 rounded-lg text-sm text-center font-bold ${physics?.weftOverLimit ? 'text-red-400 border-red-500/50' : 'text-white'}" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1)">
-        </div>
+        <label class="block text-sm font-medium mb-1 text-slate-300 tooltip" data-tip="Picks Per Inch">${L.ppi}: <span class="font-bold ${physics?.weftOverLimit ? 'text-red-400' : 'text-white'}">${state.ppi}</span></label>
+        <input type="range" min="30" max="${Math.min(250, weftMax + 20)}" value="${state.ppi}" onchange="setState({ppi:+this.value})" class="w-full">
         <div class="text-xs text-slate-500">${L.recommended}: 40-${weftMax}</div>
       </div>
     </div>
@@ -2110,27 +2145,28 @@ function renderSpecs(L, weave, warpYarn, weftYarn, gsm, physics, season, similar
 }
 
 function renderTools(L) {
+  const lockBadge = '<span class="ml-1 text-xs opacity-60">🔒</span>';
   return `
     <div class="grid grid-cols-2 gap-3">
-      <button onclick="setState({modal:'cost'})" class="p-4 rounded-xl btn-ghost text-left group">
+      <button onclick="tryOpenTool('cost')" class="p-4 rounded-xl btn-ghost text-left group ${isToolLocked('cost')?'opacity-50':''}">
         <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">💰</div>
-        <div class="font-medium text-sm">${L.costCalc}</div>
+        <div class="font-medium text-sm">${L.costCalc}${isToolLocked('cost')?lockBadge:''}</div>
       </button>
-      <button onclick="setState({modal:'library'})" class="p-4 rounded-xl btn-ghost text-left group">
+      <button onclick="tryOpenTool('library')" class="p-4 rounded-xl btn-ghost text-left group ${isToolLocked('library')?'opacity-50':''}">
         <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">📚</div>
-        <div class="font-medium text-sm">${L.library}</div>
+        <div class="font-medium text-sm">${L.library}${isToolLocked('library')?lockBadge:''}</div>
       </button>
-      <button onclick="setState({modal:'weaveEditor'})" class="p-4 rounded-xl btn-ghost text-left group">
+      <button onclick="tryOpenTool('weaveEditor')" class="p-4 rounded-xl btn-ghost text-left group ${isToolLocked('weaveEditor')?'opacity-50':''}">
         <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">✏️</div>
-        <div class="font-medium text-sm">${L.weaveEditor}</div>
+        <div class="font-medium text-sm">${L.weaveEditor}${isToolLocked('weaveEditor')?lockBadge:''}</div>
       </button>
-      <button onclick="setState({modal:'orderSheet'})" class="p-4 rounded-xl btn-ghost text-left group">
+      <button onclick="tryOpenTool('orderSheet')" class="p-4 rounded-xl btn-ghost text-left group ${isToolLocked('orderSheet')?'opacity-50':''}">
         <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">📋</div>
-        <div class="font-medium text-sm">${L.orderSheet}</div>
+        <div class="font-medium text-sm">${L.orderSheet}${isToolLocked('orderSheet')?lockBadge:''}</div>
       </button>
-      <button onclick="setState({modal:'spec'})" class="p-4 rounded-xl btn-ghost text-left group">
+      <button onclick="tryOpenTool('spec')" class="p-4 rounded-xl btn-ghost text-left group ${isToolLocked('spec')?'opacity-50':''}">
         <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">📄</div>
-        <div class="font-medium text-sm">${L.specSheet}</div>
+        <div class="font-medium text-sm">${L.specSheet}${isToolLocked('spec')?lockBadge:''}</div>
       </button>
       <button onclick="toggleCompare()" class="p-4 rounded-xl btn-ghost text-left group ${state.compareMode ? 'active' : ''}">
         <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">⚖️</div>
@@ -2695,20 +2731,6 @@ window.quickColor = hex => { const arr = state.warpColors.length < 2 ? [...state
 window.setWeaveCat = c => { const first = WEAVE_DB.find(w => w.cat === c); setState({ weaveCat: c, weaveId: first?.id || state.weaveId }); };
 window.downloadPng = () => { const c = document.getElementById('canvas') || document.getElementById('canvasA'); if (c) { const l = document.createElement('a'); l.download = `JYUKO_fabric_${state.weaveId}.png`; l.href = c.toDataURL('image/png'); l.click(); } };
 window.toggleCompare = () => { if (!state.compareMode) { setState({ compareMode: true, savedConfig: { ...state } }); } else { setState({ compareMode: false, savedConfig: null }); } };
-window.swapCompare = () => {
-  if (state.compareMode && state.savedConfig) {
-    const currentMain = { pattern: state.pattern, weaveId: state.weaveId, weaveCat: state.weaveCat, warpColors: [...state.warpColors], weftColors: [...state.weftColors], warpYarnId: state.warpYarnId, weftYarnId: state.weftYarnId, yarnCat: state.yarnCat, epi: state.epi, ppi: state.ppi, pitch: state.pitch, zoom: state.zoom };
-    const saved = state.savedConfig;
-    setState({ ...currentMain, pattern: saved.pattern, weaveId: saved.weaveId, weaveCat: saved.weaveCat, warpColors: [...(saved.warpColors||[])], weftColors: [...(saved.weftColors||[])], warpYarnId: saved.warpYarnId, weftYarnId: saved.weftYarnId, yarnCat: saved.yarnCat, epi: saved.epi, ppi: saved.ppi, pitch: saved.pitch, zoom: saved.zoom, savedConfig: currentMain });
-  }
-};
-window.swapCompare = () => {
-  if (state.compareMode && state.savedConfig) {
-    const currentMain = { pattern: state.pattern, weaveId: state.weaveId, weaveCat: state.weaveCat, warpColors: [...state.warpColors], weftColors: [...state.weftColors], warpYarnId: state.warpYarnId, weftYarnId: state.weftYarnId, yarnCat: state.yarnCat, epi: state.epi, ppi: state.ppi, pitch: state.pitch, zoom: state.zoom };
-    const saved = state.savedConfig;
-    setState({ ...currentMain, pattern: saved.pattern, weaveId: saved.weaveId, weaveCat: saved.weaveCat, warpColors: [...(saved.warpColors||[])], weftColors: [...(saved.weftColors||[])], warpYarnId: saved.warpYarnId, weftYarnId: saved.weftYarnId, yarnCat: saved.yarnCat, epi: saved.epi, ppi: saved.ppi, pitch: saved.pitch, zoom: saved.zoom, savedConfig: currentMain });
-  }
-};
 window.applyRandom = () => setState(randomGenerate());
 window.applyTrendColor = hex => { setState({ warpColors: [state.warpColors[0] || '#1d3557', hex], modal: null }); };
 
@@ -2795,7 +2817,7 @@ window.applyCustomWeave = () => {
   const customWeave = {
     id: 'custom',
     name: { ja: 'カスタム組織', zh: '自定义组织' },
-    cat: 'custom' || 'special',
+    cat: state.weaveCat || 'special',
     matrix: boolMatrix,
     rx: s, ry: s,
     chars: { durability: 3, drape: 3, breathability: 3, wrinkleResistance: 3, shine: 3 },
