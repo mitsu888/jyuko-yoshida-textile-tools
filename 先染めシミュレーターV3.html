@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>先染めシミュレーター V3 | 色织模拟器</title>
   <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -779,6 +781,16 @@ const LANG = {
     reedCount: '筬密度',
     drawingIn: '通し方',
     productionNotes: '生産注意事項',
+    // エクスポート
+    exportMenu: 'エクスポート',
+    exportCSV: 'CSV仕様書',
+    exportPDF: 'PDF仕様書',
+    exportHiRes: '高解像度画像',
+    exportCSVDesc: '仕様データをCSV形式でダウンロード',
+    exportPDFDesc: '仕様書をPDF形式で保存',
+    exportHiResDesc: 'A4印刷品質(300dpi)のPNG画像',
+    exporting: '出力中...',
+    exportDone: '完了！',
   },
   zh: {
     title: '色织模拟器 V3',
@@ -913,6 +925,16 @@ const LANG = {
     reedCount: '筘密度',
     drawingIn: '穿综方式',
     productionNotes: '生产注意事项',
+    // 导出
+    exportMenu: '导出',
+    exportCSV: 'CSV规格书',
+    exportPDF: 'PDF规格书',
+    exportHiRes: '高清图片',
+    exportCSVDesc: '将规格数据以CSV格式下载',
+    exportPDFDesc: '将规格书保存为PDF',
+    exportHiResDesc: 'A4打印质量(300dpi)的PNG图片',
+    exporting: '导出中...',
+    exportDone: '完成！',
   }
 };
 
@@ -2268,6 +2290,7 @@ function render() {
     ${state.modal === 'library' ? renderLibraryModal(L) : ''}
     ${state.modal === 'weaveEditor' ? renderWeaveEditorModal(L) : ''}
     ${state.modal === 'orderSheet' ? renderOrderSheetModal(L) : ''}
+    ${state.modal === 'export' ? renderExportModal(L) : ''}
   `;
 
   setTimeout(renderCanvas, 0);
@@ -2506,6 +2529,7 @@ function renderSpecs(L, weave, warpYarn, weftYarn, gsm, physics, season, similar
 
     <div class="flex gap-2">
       <button onclick="downloadPng()" class="flex-1 px-4 py-2 rounded-xl btn-ghost text-sm font-medium hover:bg-slate-600/50">${L.savePng}</button>
+      <button onclick="setState({modal:'export'})" class="flex-1 px-4 py-2 rounded-xl btn-ghost text-sm font-medium hover:bg-emerald-600/30 text-emerald-300">📤 ${L.exportMenu}</button>
       <button onclick="setState({modal:'spec'})" class="flex-1 px-4 py-2 rounded-xl btn-primary text-sm font-medium">${L.specSheet}</button>
     </div>
   `;
@@ -2557,6 +2581,14 @@ function renderTools(L) {
       <button onclick="shareURL()" id="shareBtn" class="p-4 rounded-xl btn-ghost text-left group">
         <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">🔗</div>
         <div class="font-medium text-sm">${state.lang==='ja'?'URL共有':'URL分享'}</div>
+      </button>
+      <button onclick="setState({modal:'export'})" class="p-4 rounded-xl btn-ghost text-left group">
+              <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">📤</div>
+              <div class="font-medium text-sm">${L.exportMenu}</div>
+      </button>
+      <button onclick="setState({modal:'export'})" class="p-4 rounded-xl btn-ghost text-left group">
+              <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">📤</div>
+              <div class="font-medium text-sm">${L.exportMenu}</div>
       </button>
       <button onclick="undoState()" class="p-4 rounded-xl btn-ghost text-left group ${(state.undoStack||[]).length===0?'opacity-30':''}">
         <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">↩️</div>
@@ -3141,6 +3173,225 @@ function renderOrderSheetModal(L) {
   `;
 }
 
+
+// ============================================================
+// Phase 3: エクスポート機能 (CSV / PDF / 高解像度画像)
+// ============================================================
+function renderExportModal(L) {
+  const ja = state.lang === 'ja';
+  return `
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
+      <div class="modal-content rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in">
+        <div class="p-4 border-b border-slate-700/50 flex items-center justify-between">
+          <h3 class="font-bold text-white text-lg">📤 ${L.exportMenu}</h3>
+          <button onclick="setState({modal:null})" class="text-slate-400 hover:text-white text-xl">✕</button>
+        </div>
+        <div class="p-5 space-y-3">
+          <button onclick="exportCSV()" class="w-full p-4 rounded-xl btn-ghost text-left flex items-center gap-4 hover:bg-slate-600/30 group">
+            <div class="text-3xl group-hover:scale-110 transition-transform">📊</div>
+            <div>
+              <div class="font-bold text-white">${L.exportCSV}</div>
+              <div class="text-xs text-slate-400 mt-0.5">${L.exportCSVDesc}</div>
+            </div>
+          </button>
+          <button onclick="exportPDF()" id="pdfBtn" class="w-full p-4 rounded-xl btn-ghost text-left flex items-center gap-4 hover:bg-slate-600/30 group">
+            <div class="text-3xl group-hover:scale-110 transition-transform">📄</div>
+            <div>
+              <div class="font-bold text-white">${L.exportPDF}</div>
+              <div class="text-xs text-slate-400 mt-0.5">${L.exportPDFDesc}</div>
+            </div>
+          </button>
+          <button onclick="exportHiRes()" id="hiResBtn" class="w-full p-4 rounded-xl btn-ghost text-left flex items-center gap-4 hover:bg-slate-600/30 group">
+            <div class="text-3xl group-hover:scale-110 transition-transform">🖼️</div>
+            <div>
+              <div class="font-bold text-white">${L.exportHiRes}</div>
+              <div class="text-xs text-slate-400 mt-0.5">${L.exportHiResDesc}</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// CSV仕様書エクスポート
+function exportCSV() {
+  const L = LANG[state.lang];
+  const weave = getWeave(state.weaveId);
+  const warpYarn = getYarn(state.warpYarnId);
+  const weftYarn = getYarn(state.weftYarnId);
+  const physics = calcPhysics();
+  const gsm = calcGSM();
+  const season = judgeSeason(gsm);
+  const ja = state.lang === 'ja';
+
+  const rows = [
+    [ja ? '項目' : '项目', ja ? '値' : '值'],
+    [ja ? '織り組織' : '织物组织', weave?.name[state.lang] || state.weaveId],
+    [ja ? '経糸' : '经纱', warpYarn?.name[state.lang] || state.warpYarnId],
+    [ja ? '緯糸' : '纬纱', weftYarn?.name[state.lang] || state.weftYarnId],
+    [ja ? '経糸番手' : '经纱支数', warpYarn ? warpYarn.ne + 'Ne' : '-'],
+    [ja ? '緯糸番手' : '纬纱支数', weftYarn ? weftYarn.ne + 'Ne' : '-'],
+    ['EPI', state.epi],
+    ['PPI', state.ppi],
+    [ja ? '目付 (GSM)' : '克重 (GSM)', gsm ? gsm.toFixed(1) : '-'],
+    [ja ? '季節' : '季节', season],
+    [ja ? '経糸径 (mm)' : '经纱直径 (mm)', physics?.warpDiameter?.toFixed(3) || '-'],
+    [ja ? '緯糸径 (mm)' : '纬纱直径 (mm)', physics?.weftDiameter?.toFixed(3) || '-'],
+    [ja ? '経糸カバー率' : '经纱覆盖率', physics?.warpCoverage ? (physics.warpCoverage * 100).toFixed(1) + '%' : '-'],
+    [ja ? '緯糸カバー率' : '纬纱覆盖率', physics?.weftCoverage ? (physics.weftCoverage * 100).toFixed(1) + '%' : '-'],
+    [ja ? '柄ピッチ' : '花纹间距', state.pitch],
+    [ja ? 'パターン' : '图案', state.pattern],
+    [ja ? '経糸色' : '经纱颜色', state.warpColors.join(', ')],
+    [ja ? '緯糸色' : '纬纱颜色', state.weftColors.join(', ')],
+  ];
+
+  // CSV生成 (BOM付きUTF-8)
+  const csvContent = '\uFEFF' + rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'JYUKO_spec_' + state.weaveId + '_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// PDF仕様書エクスポート
+async function exportPDF() {
+  const btn = document.getElementById('pdfBtn');
+  const L = LANG[state.lang];
+  if (btn) btn.querySelector('.font-bold').textContent = L.exporting;
+
+  try {
+    // 仕様書モーダルを一時的に表示してキャプチャ
+    const weave = getWeave(state.weaveId);
+    const warpYarn = getYarn(state.warpYarnId);
+    const weftYarn = getYarn(state.weftYarnId);
+    const physics = calcPhysics();
+    const gsm = calcGSM();
+    const season = judgeSeason(gsm);
+    const ja = state.lang === 'ja';
+
+    // PDF用の一時的なHTML要素を作成
+    const tmpDiv = document.createElement('div');
+    tmpDiv.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:794px;padding:40px;background:white;color:black;font-family:sans-serif;font-size:14px;';
+    tmpDiv.innerHTML = `
+      <div style="border-bottom:3px solid #1e40af;padding-bottom:12px;margin-bottom:20px;">
+        <h1 style="font-size:22px;font-weight:bold;color:#1e40af;margin:0;">${ja ? '先染め生地 仕様書' : '色织面料 规格书'}</h1>
+        <p style="color:#666;font-size:11px;margin:4px 0 0;">JYUKO Textile Simulator — ${new Date().toLocaleDateString()}</p>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+        <tr style="background:#f1f5f9;"><th style="text-align:left;padding:8px;border:1px solid #e2e8f0;width:40%;">${ja ? '項目' : '项目'}</th><th style="text-align:left;padding:8px;border:1px solid #e2e8f0;">${ja ? '値' : '值'}</th></tr>
+        <tr><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '織り組織' : '织物组织'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${weave?.name[state.lang] || '-'}</td></tr>
+        <tr style="background:#f8fafc;"><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '経糸' : '经纱'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${warpYarn?.name[state.lang] || '-'} (${warpYarn?.ne || '-'}Ne)</td></tr>
+        <tr><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '緯糸' : '纬纱'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${weftYarn?.name[state.lang] || '-'} (${weftYarn?.ne || '-'}Ne)</td></tr>
+        <tr style="background:#f8fafc;"><td style="padding:8px;border:1px solid #e2e8f0;">EPI / PPI</td><td style="padding:8px;border:1px solid #e2e8f0;">${state.epi} / ${state.ppi}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '目付' : '克重'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${gsm ? gsm.toFixed(1) + ' g/m²' : '-'}</td></tr>
+        <tr style="background:#f8fafc;"><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '季節' : '季节'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${season}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '経糸径' : '经纱直径'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${physics?.warpDiameter?.toFixed(3) || '-'} mm</td></tr>
+        <tr style="background:#f8fafc;"><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '緯糸径' : '纬纱直径'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${physics?.weftDiameter?.toFixed(3) || '-'} mm</td></tr>
+        <tr><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? 'カバー率 (経/緯)' : '覆盖率 (经/纬)'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${physics?.warpCoverage ? (physics.warpCoverage*100).toFixed(1)+'%' : '-'} / ${physics?.weftCoverage ? (physics.weftCoverage*100).toFixed(1)+'%' : '-'}</td></tr>
+        <tr style="background:#f8fafc;"><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? 'パターン' : '图案'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${state.pattern} (pitch: ${state.pitch})</td></tr>
+        <tr><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '経糸色' : '经纱颜色'}</td><td style="padding:8px;border:1px solid #e2e8f0;"><span style="display:inline-flex;gap:4px;">${state.warpColors.map(c => '<span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:'+c+';border:1px solid #ccc;" title="'+c+'"></span>').join('')}</span> ${state.warpColors.join(', ')}</td></tr>
+        <tr style="background:#f8fafc;"><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '緯糸色' : '纬纱颜色'}</td><td style="padding:8px;border:1px solid #e2e8f0;"><span style="display:inline-flex;gap:4px;">${state.weftColors.map(c => '<span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:'+c+';border:1px solid #ccc;" title="'+c+'"></span>').join('')}</span> ${state.weftColors.join(', ')}</td></tr>
+      </table>
+      <div style="margin-top:16px;">
+        <h3 style="font-size:14px;font-weight:bold;margin-bottom:8px;">${ja ? 'プレビュー' : '预览'}</h3>
+        <canvas id="pdfCanvas" width="400" height="400" style="border:1px solid #e2e8f0;border-radius:8px;"></canvas>
+      </div>
+      <div style="margin-top:20px;padding-top:12px;border-top:1px solid #e2e8f0;color:#999;font-size:10px;">
+        Generated by JYUKO Yarn-Dyed Fabric Simulator V3 — ${new Date().toISOString()}
+      </div>
+    `;
+    document.body.appendChild(tmpDiv);
+
+    // キャンバスにプレビューを描画
+    const srcCanvas = document.getElementById('canvas') || document.getElementById('canvasA');
+    const pdfCanvas = tmpDiv.querySelector('#pdfCanvas');
+    if (srcCanvas && pdfCanvas) {
+      const ctx = pdfCanvas.getContext('2d');
+      ctx.drawImage(srcCanvas, 0, 0, 400, 400);
+    }
+
+    await new Promise(r => setTimeout(r, 100));
+
+    const canvas = await html2canvas(tmpDiv, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfW = pdf.internal.pageSize.getWidth();
+    const pdfH = pdf.internal.pageSize.getHeight();
+    const imgW = pdfW - 20;
+    const imgH = (canvas.height / canvas.width) * imgW;
+
+    if (imgH > pdfH - 20) {
+      const scale = (pdfH - 20) / imgH;
+      pdf.addImage(imgData, 'JPEG', 10, 10, imgW * scale, imgH * scale);
+    } else {
+      pdf.addImage(imgData, 'JPEG', 10, 10, imgW, imgH);
+    }
+
+    pdf.save('JYUKO_spec_' + state.weaveId + '_' + new Date().toISOString().slice(0,10) + '.pdf');
+    document.body.removeChild(tmpDiv);
+
+    if (btn) btn.querySelector('.font-bold').textContent = L.exportDone;
+    setTimeout(() => { if (btn) btn.querySelector('.font-bold').textContent = L.exportPDF; }, 2000);
+  } catch (err) {
+    console.error('PDF export error:', err);
+    if (btn) btn.querySelector('.font-bold').textContent = 'Error: ' + err.message;
+    setTimeout(() => { if (btn) btn.querySelector('.font-bold').textContent = L.exportPDF; }, 3000);
+  }
+}
+
+// 高解像度画像エクスポート (A4 300dpi相当: 2480×3508px)
+function exportHiRes() {
+  const btn = document.getElementById('hiResBtn');
+  const L = LANG[state.lang];
+  if (btn) btn.querySelector('.font-bold').textContent = L.exporting;
+
+  try {
+    const srcCanvas = document.getElementById('canvas') || document.getElementById('canvasA');
+    if (!srcCanvas) throw new Error('Canvas not found');
+
+    // A4 300dpi = 2480 x 3508 px, 生地プレビューは正方形で大きく
+    const hiResSize = 2400;
+    const hiCanvas = document.createElement('canvas');
+    hiCanvas.width = hiResSize;
+    hiCanvas.height = hiResSize;
+    const ctx = hiCanvas.getContext('2d');
+
+    // 白背景
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, hiResSize, hiResSize);
+
+    // 高品質リサンプリング
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    // ソースキャンバスを高解像度で再描画
+    ctx.drawImage(srcCanvas, 0, 0, hiResSize, hiResSize);
+
+    // ダウンロード
+    hiCanvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'JYUKO_fabric_HiRes_' + state.weaveId + '_' + new Date().toISOString().slice(0,10) + '.png';
+      a.click();
+      URL.revokeObjectURL(url);
+
+      if (btn) btn.querySelector('.font-bold').textContent = L.exportDone;
+      setTimeout(() => { if (btn) btn.querySelector('.font-bold').textContent = L.exportHiRes; }, 2000);
+    }, 'image/png');
+  } catch (err) {
+    console.error('HiRes export error:', err);
+    if (btn) btn.querySelector('.font-bold').textContent = 'Error: ' + err.message;
+    setTimeout(() => { if (btn) btn.querySelector('.font-bold').textContent = L.exportHiRes; }, 3000);
+  }
+}
+
 // ============================================================
 // グローバル関数
 // ============================================================
@@ -3193,6 +3444,9 @@ window.redoState = () => {
     scheduleRender();
   }
 };
+window.exportCSV = exportCSV;
+window.exportPDF = exportPDF;
+window.exportHiRes = exportHiRes;
 window.downloadPng = () => { const c = document.getElementById('canvas') || document.getElementById('canvasA'); if (c) { const l = document.createElement('a'); l.download = `JYUKO_fabric_${state.weaveId}.png`; l.href = c.toDataURL('image/png'); l.click(); } };
 window.toggleCompare = () => { if (!state.compareMode) { setState({ compareMode: true, savedConfig: { ...state } }); } else { setState({ compareMode: false, savedConfig: null }); } };
 window.swapCompare = () => {
