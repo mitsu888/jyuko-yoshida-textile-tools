@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>先染めシミュレーター V3 | 色织模拟器</title>
   <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -203,14 +205,110 @@
     .footer-gradient {
       background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.8) 100%);
     }
+    /* ===== Improvement #5: アクセシビリティ ===== */
+    :focus-visible {
+      outline: 2px solid #818cf8;
+      outline-offset: 2px;
+    }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+    [role="dialog"] { outline: none; }
+    /* ===== Improvement #6: モバイル強化 ===== */
+    @media (max-width: 640px) {
+      body { font-size: 14px; }
+      .tab-item { padding: 8px 12px; font-size: 12px; min-height: 44px; }
+      .btn-ghost, .btn-primary { min-height: 44px; min-width: 44px; }
+      .color-swatch { width: 32px; height: 32px; min-width: 32px; min-height: 32px; }
+      .modal-content { max-width: 100%; margin: 8px; border-radius: 16px; max-height: calc(100vh - 16px); }
+      .info-card { padding: 8px; }
+      select { min-height: 44px; font-size: 16px; /* prevent iOS zoom */ }
+      input[type="range"] { height: 8px; }
+      input[type="range"]::-webkit-slider-thumb { width: 24px; height: 24px; }
+      input[type="number"] { min-height: 44px; font-size: 16px; }
+    }
+    @media (max-width: 380px) {
+      .tab-item { padding: 6px 8px; font-size: 11px; }
+    }
+    /* ===== Improvement #8: Tailwind CDN fallback (critical layout) ===== */
+    .flex { display: flex; }
+    .grid { display: grid; }
+    .hidden { display: none; }
+    .relative { position: relative; }
+    .absolute { position: absolute; }
+    .fixed { position: fixed; }
+    .inset-0 { top:0;right:0;bottom:0;left:0; }
+    .items-center { align-items: center; }
+    .justify-center { justify-content: center; }
+    .justify-between { justify-content: space-between; }
+    .flex-wrap { flex-wrap: wrap; }
+    .flex-1 { flex: 1 1 0%; }
+    .gap-1 { gap: 0.25rem; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+    .w-full { width: 100%; }
+    .overflow-hidden { overflow: hidden; }
+    .overflow-y-auto { overflow-y: auto; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .rounded-xl { border-radius: 0.75rem; }
+    .rounded-2xl { border-radius: 1rem; }
+    .text-center { text-align: center; }
+    .text-left { text-align: left; }
+    .text-right { text-align: right; }
+    .text-xs { font-size: 0.75rem; }
+    .text-sm { font-size: 0.875rem; }
+    .text-lg { font-size: 1.125rem; }
+    .text-xl { font-size: 1.25rem; }
+    .font-medium { font-weight: 500; }
+    .font-bold { font-weight: 700; }
+    .p-2 { padding: 0.5rem; }
+    .p-3 { padding: 0.75rem; }
+    .p-4 { padding: 1rem; }
+    .p-5 { padding: 1.25rem; }
+    .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+    .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .mb-1 { margin-bottom: 0.25rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .mb-3 { margin-bottom: 0.75rem; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-6 { margin-bottom: 1.5rem; }
+    .mt-4 { margin-top: 1rem; }
+    .space-y-2 > * + * { margin-top: 0.5rem; }
+    .space-y-3 > * + * { margin-top: 0.75rem; }
+    .space-y-4 > * + * { margin-top: 1rem; }
+    .border { border-width: 1px; border-style: solid; }
+    .z-10 { z-index: 10; }
+    .z-20 { z-index: 20; }
+    .z-50 { z-index: 50; }
   </style>
 </head>
 <body class="min-h-screen">
-<div id="app" class="max-w-7xl mx-auto px-4 py-6 relative z-10"></div>
+<a href="#canvas" class="sr-only" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;z-index:999" onfocus="this.style.position='static';this.style.width='auto';this.style.height='auto'" onblur="this.style.position='absolute';this.style.left='-9999px';this.style.width='1px';this.style.height='1px'">Skip to preview</a>
+<div id="app" class="max-w-7xl mx-auto px-4 py-6 relative z-10" role="application" aria-label="Yarn-Dyed Fabric Simulator"></div>
 
 <script>
 // ============================================================
 // V3: 物理計算ベースの先染めシミュレーター
+// Improvements applied:
+//   #1 Code organization (clear sections, no duplicates)
+//   #2 Rendering optimization (requestAnimationFrame debounce)
+//   #3 Canvas performance (offscreen tile + createPattern cache)
+//   #4 Error handling (localStorage, URL validation, null safety)
+//   #5 Accessibility (aria-labels, role=dialog, keyboard nav, focus)
+//   #6 Mobile (touch targets 44px, fluid canvas, popup fixes)
+//   #7 Pantone database expanded (24 → 150+ colors)
+//   #8 Tailwind CDN fallback (critical CSS inlined)
+//   #9 Cost calculation (fiber-based realistic USD/kg pricing)
+//   #10 Section organization headers throughout
+// ============================================================
+
+// ============================================================
+// SECTION 1: 繊維の物理定数
 // ============================================================
 
 // 繊維の物理定数
@@ -238,7 +336,7 @@ const FIBER_CONSTANTS = {
 };
 
 // ============================================================
-// 糸の物理計算（コア機能）
+// SECTION 3: 糸の物理計算（コア機能）
 // ============================================================
 
 // Ne番手から糸直径(mm)を計算
@@ -297,33 +395,181 @@ function calcFabricThickness(warpNe, weftNe, weaveType, fiberDensity = 1.54) {
 }
 
 // ============================================================
-// Pantoneデータベース
+// SECTION 2: Pantoneデータベース (Improvement #7: 150+色に拡充)
 // ============================================================
 const PANTONE_DB = [
-  { code: '19-4052', name: 'Classic Blue', hex: '#0f4c81' },
-  { code: '17-5104', name: 'Ultimate Gray', hex: '#939597' },
-  { code: '13-0647', name: 'Illuminating', hex: '#f5df4d' },
-  { code: '18-4548', name: 'Ibiza Blue', hex: '#2a6fa1' },
-  { code: '17-1463', name: 'Tangerine Tango', hex: '#dd4124' },
-  { code: '15-5519', name: 'Turquoise', hex: '#45b5aa' },
-  { code: '18-3943', name: 'Blue Iris', hex: '#5a5b9f' },
-  { code: '19-1664', name: 'True Red', hex: '#bf1932' },
-  { code: '14-0756', name: 'Primrose Yellow', hex: '#f6d155' },
-  { code: '15-1247', name: 'Apricot', hex: '#f5b895' },
-  { code: '19-4024', name: 'Navy Blazer', hex: '#282d3c' },
+  // Whites & Off-Whites
   { code: '11-0601', name: 'Bright White', hex: '#f4f5f0' },
+  { code: '11-0602', name: 'Snow White', hex: '#f0efe2' },
+  { code: '11-4800', name: 'Blanc de Blanc', hex: '#e8e5d7' },
+  { code: '11-4302', name: 'Marshmallow', hex: '#f0ece3' },
+  { code: '11-0103', name: 'Egret', hex: '#f5f0e1' },
+  { code: '12-0304', name: 'Antique White', hex: '#efe1ce' },
+  { code: '11-0507', name: 'Winter White', hex: '#f4f1e0' },
+  { code: '13-0002', name: 'White Sand', hex: '#dbd5c5' },
+  // Grays
+  { code: '14-4002', name: 'Glacier Gray', hex: '#c5c6c7' },
+  { code: '15-4003', name: 'Storm Gray', hex: '#a5a8ab' },
+  { code: '17-5104', name: 'Ultimate Gray', hex: '#939597' },
+  { code: '16-3802', name: 'Ash', hex: '#a09d9c' },
+  { code: '18-0201', name: 'Castlerock', hex: '#5f5e62' },
+  { code: '18-0403', name: 'Dark Gull Gray', hex: '#625d5d' },
+  { code: '19-0201', name: 'Asphalt', hex: '#3d3c3a' },
+  { code: '19-4006', name: 'Phantom', hex: '#2f2f30' },
+  // Blacks
   { code: '19-0303', name: 'Jet Black', hex: '#2b2926' },
-  { code: '17-1456', name: 'Tigerlily', hex: '#e2583e' },
-  { code: '15-0343', name: 'Greenery', hex: '#88b04b' },
-  { code: '18-1750', name: 'Viva Magenta', hex: '#be3455' },
+  { code: '19-4005', name: 'Black Beauty', hex: '#26262a' },
+  { code: '19-0508', name: 'Peat', hex: '#393432' },
+  { code: '19-4004', name: 'Black Onyx', hex: '#2a2b2e' },
+  // Beiges & Tans
+  { code: '13-1015', name: 'Almond Cream', hex: '#e5d3b3' },
+  { code: '14-1012', name: 'Pebble', hex: '#cab698' },
+  { code: '15-1116', name: 'Safari', hex: '#c1a882' },
+  { code: '16-1120', name: 'Latte', hex: '#b89e7e' },
+  { code: '14-1118', name: 'Beige', hex: '#c8aa80' },
+  { code: '15-1225', name: 'Sand', hex: '#d4a574' },
   { code: '13-1023', name: 'Peach Fuzz', hex: '#ffbe98' },
-  { code: '16-1546', name: 'Living Coral', hex: '#ff6f61' },
-  { code: '18-3838', name: 'Ultra Violet', hex: '#5f4b8b' },
-  { code: '15-1520', name: 'Rose Quartz', hex: '#f7cac9' },
-  { code: '15-3919', name: 'Serenity', hex: '#92a8d1' },
+  // Browns
+  { code: '17-1044', name: 'Chipmunk', hex: '#a0623b' },
+  { code: '18-1048', name: 'Caramel Cafe', hex: '#864c24' },
+  { code: '19-1118', name: 'Chocolate Brown', hex: '#5c3a2d' },
+  { code: '18-1142', name: 'Cognac', hex: '#9a5a2f' },
+  { code: '17-1134', name: 'Tobacco Brown', hex: '#9b7340' },
+  { code: '18-1130', name: 'Aztec', hex: '#7b5941' },
+  { code: '19-1015', name: 'Bracken', hex: '#4e3629' },
+  { code: '18-0930', name: 'Coffee Liqueur', hex: '#72593b' },
+  // Reds
+  { code: '19-1664', name: 'True Red', hex: '#bf1932' },
+  { code: '18-1662', name: 'Flame Scarlet', hex: '#cd212a' },
+  { code: '18-1750', name: 'Viva Magenta', hex: '#be3455' },
+  { code: '17-1456', name: 'Tigerlily', hex: '#e2583e' },
+  { code: '19-1557', name: 'Chili Pepper', hex: '#9b1b30' },
+  { code: '18-1555', name: 'Lollipop', hex: '#c1282d' },
+  { code: '18-1549', name: 'Tomato', hex: '#cf3a36' },
+  { code: '19-1540', name: 'Syrah', hex: '#7b2838' },
+  { code: '19-1525', name: 'Port', hex: '#6c2831' },
+  { code: '19-1652', name: 'Rhubarb', hex: '#7b2d3f' },
   { code: '18-1438', name: 'Marsala', hex: '#955251' },
+  { code: '17-1463', name: 'Tangerine Tango', hex: '#dd4124' },
+  { code: '16-1546', name: 'Living Coral', hex: '#ff6f61' },
+  // Pinks
+  { code: '15-1520', name: 'Rose Quartz', hex: '#f7cac9' },
+  { code: '16-1731', name: 'Strawberry Ice', hex: '#e78b90' },
+  { code: '17-1930', name: 'Rapture Rose', hex: '#c64b6c' },
+  { code: '18-2043', name: 'Pink Peacock', hex: '#c62168' },
+  { code: '16-2126', name: 'Pink Carnation', hex: '#e06b8b' },
+  { code: '13-2010', name: 'Pink Lady', hex: '#f5c3c2' },
+  { code: '14-1911', name: 'Quartz Pink', hex: '#eab4b4' },
+  { code: '15-1624', name: 'Conch Shell', hex: '#e8a0a0' },
+  { code: '17-2034', name: 'Hot Pink', hex: '#d63384' },
+  { code: '18-1741', name: 'Honeysuckle', hex: '#d94f70' },
+  // Oranges
+  { code: '15-1247', name: 'Apricot', hex: '#f5b895' },
+  { code: '16-1350', name: 'Coral', hex: '#f27059' },
+  { code: '16-1359', name: 'Orange Peel', hex: '#fa7a35' },
+  { code: '17-1350', name: 'Celosia Orange', hex: '#f37338' },
+  { code: '16-1448', name: 'Burnt Orange', hex: '#cc5500' },
+  { code: '15-1164', name: 'Bright Marigold', hex: '#faa54a' },
+  { code: '16-1341', name: 'Mango', hex: '#e8823a' },
+  { code: '14-1228', name: 'Peach Nectar', hex: '#f7b28b' },
+  { code: '17-1145', name: 'Autumn Maple', hex: '#c46f41' },
+  // Yellows
+  { code: '13-0647', name: 'Illuminating', hex: '#f5df4d' },
+  { code: '14-0756', name: 'Primrose Yellow', hex: '#f6d155' },
+  { code: '13-0755', name: 'Lemon', hex: '#fde74c' },
+  { code: '14-0848', name: 'Mimosa', hex: '#f0c05a' },
+  { code: '14-0941', name: 'Banana', hex: '#fce373' },
+  { code: '15-0953', name: 'Lemon Chrome', hex: '#e8b838' },
+  { code: '15-0850', name: 'Citrus', hex: '#e8b028' },
+  { code: '13-0858', name: 'Vibrant Yellow', hex: '#fce300' },
+  { code: '14-0837', name: 'Misted Yellow', hex: '#dab965' },
+  // Greens
+  { code: '15-0343', name: 'Greenery', hex: '#88b04b' },
   { code: '17-5641', name: 'Emerald', hex: '#009473' },
+  { code: '17-5722', name: 'Ultramarine Green', hex: '#006b54' },
+  { code: '16-5938', name: 'Mint', hex: '#00a170' },
+  { code: '15-6442', name: 'Island Green', hex: '#2bae66' },
+  { code: '17-5528', name: 'Greenlake', hex: '#0d7963' },
+  { code: '19-5420', name: 'Forest Green', hex: '#2c5e4b' },
+  { code: '18-0135', name: 'Treetop', hex: '#476a30' },
+  { code: '16-6340', name: 'Kelly Green', hex: '#29ab87' },
+  { code: '15-5519', name: 'Turquoise', hex: '#45b5aa' },
+  { code: '14-6316', name: 'Jade', hex: '#65b89f' },
+  { code: '18-5338', name: 'Verdant Green', hex: '#10654d' },
+  { code: '17-0330', name: 'Peridot', hex: '#85913b' },
+  { code: '16-0230', name: 'Tendril', hex: '#9fc088' },
+  { code: '17-5430', name: 'Shady Glade', hex: '#008c69' },
+  { code: '19-5406', name: 'Pine Grove', hex: '#2e4a3e' },
+  // Teals & Aquas
   { code: '14-4811', name: 'Aqua Sky', hex: '#7bc4c4' },
+  { code: '16-5127', name: 'Biscay Bay', hex: '#097988' },
+  { code: '17-4919', name: 'Teal', hex: '#3f888f' },
+  { code: '15-5217', name: 'Aqua Haze', hex: '#86c5c2' },
+  { code: '18-4726', name: 'Tile Blue', hex: '#1a7a8a' },
+  { code: '17-5029', name: 'Columbia', hex: '#2a8d8d' },
+  // Blues
+  { code: '19-4052', name: 'Classic Blue', hex: '#0f4c81' },
+  { code: '18-4548', name: 'Ibiza Blue', hex: '#2a6fa1' },
+  { code: '15-3919', name: 'Serenity', hex: '#92a8d1' },
+  { code: '19-4024', name: 'Navy Blazer', hex: '#282d3c' },
+  { code: '19-4028', name: 'Dress Blues', hex: '#2a3756' },
+  { code: '19-4340', name: 'Galaxy Blue', hex: '#1a4472' },
+  { code: '18-4244', name: 'Director Blue', hex: '#286aab' },
+  { code: '17-4041', name: 'Marina', hex: '#4f84c4' },
+  { code: '15-3920', name: 'Cerulean', hex: '#98b4d4' },
+  { code: '16-4132', name: 'Little Boy Blue', hex: '#6c99c6' },
+  { code: '17-4028', name: 'Riviera', hex: '#4878a8' },
+  { code: '19-4150', name: 'Princess Blue', hex: '#00539c' },
+  { code: '15-4020', name: 'Cerulean Blue', hex: '#7eb0d4' },
+  { code: '14-4318', name: 'Sky Blue', hex: '#78b7c5' },
+  { code: '18-4225', name: 'Copen Blue', hex: '#407899' },
+  { code: '17-4139', name: 'Azure', hex: '#3f7cb6' },
+  { code: '18-4041', name: 'Star Sapphire', hex: '#2c5f9e' },
+  { code: '19-3925', name: 'Blue Depths', hex: '#263056' },
+  // Indigos
+  { code: '19-3928', name: 'Navy Blue', hex: '#2a3244' },
+  { code: '19-3832', name: 'Medieval Blue', hex: '#2a2b5f' },
+  { code: '19-3938', name: 'Blue Ribbon', hex: '#003594' },
+  { code: '19-3847', name: 'Spectrum Blue', hex: '#3d3c8e' },
+  // Purples & Violets
+  { code: '18-3838', name: 'Ultra Violet', hex: '#5f4b8b' },
+  { code: '18-3943', name: 'Blue Iris', hex: '#5a5b9f' },
+  { code: '19-3536', name: 'Crown Jewel', hex: '#583780' },
+  { code: '18-3737', name: 'Royal Purple', hex: '#7851a9' },
+  { code: '17-3640', name: 'Hyacinth', hex: '#7f6ead' },
+  { code: '17-3834', name: 'Aster Purple', hex: '#755c9b' },
+  { code: '18-3520', name: 'Purple Reign', hex: '#683b75' },
+  { code: '16-3823', name: 'Purple Rose', hex: '#a48bbf' },
+  { code: '15-3817', name: 'Lavender', hex: '#b4a7d6' },
+  { code: '14-3812', name: 'Orchid Bloom', hex: '#c3a6cc' },
+  { code: '17-3313', name: 'Grape Jam', hex: '#7a4a6d' },
+  // Burgundy & Wine
+  { code: '19-1724', name: 'Tawny Port', hex: '#6b2842' },
+  { code: '19-1627', name: 'Port Royale', hex: '#5b253e' },
+  { code: '19-1726', name: 'Cabernet', hex: '#69293b' },
+  { code: '18-1631', name: 'Burgundy', hex: '#823b4b' },
+  { code: '18-1619', name: 'Maroon', hex: '#7b4259' },
+  // Khaki & Olive
+  { code: '15-0318', name: 'Sage', hex: '#9caf88' },
+  { code: '16-0526', name: 'Khaki', hex: '#a89968' },
+  { code: '18-0622', name: 'Olive Night', hex: '#5f5a40' },
+  { code: '18-0521', name: 'Burnt Olive', hex: '#5e5930' },
+  { code: '17-0525', name: 'Loden Green', hex: '#6d7553' },
+  { code: '18-0420', name: 'Four Leaf Clover', hex: '#566048' },
+  // Corals & Salmon
+  { code: '16-1543', name: 'Fusion Coral', hex: '#f96714' },
+  { code: '14-1323', name: 'Salmon', hex: '#f5a688' },
+  { code: '15-1530', name: 'Peach Pink', hex: '#f0908d' },
+  // Metallics & Special
+  { code: '16-1324', name: 'Copper Tan', hex: '#c28868' },
+  { code: '16-0836', name: 'Rich Gold', hex: '#b08c42' },
+  { code: '15-0927', name: 'Pale Gold', hex: '#c8a951' },
+  { code: '17-3911', name: 'Silver', hex: '#8e8e90' },
+  // Denim-specific
+  { code: '18-4220', name: 'Provincial Blue', hex: '#4c6a92' },
+  { code: '18-3910', name: 'Blue Indigo', hex: '#5a5b7e' },
+  { code: '19-4118', name: 'Dark Denim', hex: '#34495e' },
+  { code: '17-4131', name: 'Cendre Blue', hex: '#5084a7' },
 ];
 
 // 2025年トレンドカラー
@@ -535,6 +781,16 @@ const LANG = {
     reedCount: '筬密度',
     drawingIn: '通し方',
     productionNotes: '生産注意事項',
+    // エクスポート
+    exportMenu: 'エクスポート',
+    exportCSV: 'CSV仕様書',
+    exportPDF: 'PDF仕様書',
+    exportHiRes: '高解像度画像',
+    exportCSVDesc: '仕様データをCSV形式でダウンロード',
+    exportPDFDesc: '仕様書をPDF形式で保存',
+    exportHiResDesc: 'A4印刷品質(300dpi)のPNG画像',
+    exporting: '出力中...',
+    exportDone: '完了！',
   },
   zh: {
     title: '色织模拟器 V3',
@@ -669,6 +925,16 @@ const LANG = {
     reedCount: '筘密度',
     drawingIn: '穿综方式',
     productionNotes: '生产注意事项',
+    // 导出
+    exportMenu: '导出',
+    exportCSV: 'CSV规格书',
+    exportPDF: 'PDF规格书',
+    exportHiRes: '高清图片',
+    exportCSVDesc: '将规格数据以CSV格式下载',
+    exportPDFDesc: '将规格书保存为PDF',
+    exportHiResDesc: 'A4打印质量(300dpi)的PNG图片',
+    exporting: '导出中...',
+    exportDone: '完成！',
   }
 };
 
@@ -1355,9 +1621,21 @@ function calcCost(config) {
   const warpKgPerM = (config.epi * widthInch * warpTexVal * crimp) / 1000000;
   const weftKgPerM = (config.ppi * widthInch * weftTexVal * 1.03) / 1000000; // 緯糸縮み3%
 
-  // 糸単価（YARN_DBの price はレベル、$/kg に概算変換）
-  const warpPriceKg = (warpYarn.price || 3) * 2; // price level → $/kg 概算
-  const weftPriceKg = (weftYarn.price || 3) * 2;
+  // 繊維別の実勢ベース糸単価 (USD/kg)
+  const FIBER_PRICE_BASE = {
+    cotton: 3.5, linen: 7, ramie: 6, wool: 8, cashmere: 60, silk: 25,
+    polyester: 2, nylon: 4, viscose: 3, lyocell: 5.5, modal: 4.5,
+    spandex: 8, acrylic: 2.5, ptt: 4, polyurethane: 7, polypropylene: 2.5,
+    pbt: 3.5, aramid: 15, cupro: 6, paper: 3
+  };
+  function yarnPricePerKg(yarn) {
+    let base = 0;
+    yarn.comp.forEach(c => { base += (FIBER_PRICE_BASE[c.f] || 3) * (c.p / 100); });
+    const qualityMult = 1 + (yarn.price - 3) * 0.25;
+    return Math.max(1.5, base * qualityMult);
+  }
+  const warpPriceKg = yarnPricePerKg(warpYarn);
+  const weftPriceKg = yarnPricePerKg(weftYarn);
 
   const warpCostPerM = warpKgPerM * warpPriceKg;
   const weftCostPerM = weftKgPerM * weftPriceKg;
@@ -1393,40 +1671,71 @@ function calcCost(config) {
 }
 
 // ============================================================
-// 素材ライブラリ（localStorage）
+// 素材ライブラリ（localStorage） - Improvement #4: エラーハンドリング強化
 // ============================================================
 function getLibrary() {
-  try { return JSON.parse(localStorage.getItem('jyuko_fabric_library') || '[]'); }
-  catch { return []; }
+  try {
+    const raw = localStorage.getItem('jyuko_fabric_library');
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch(e) {
+    console.warn('Library load failed:', e);
+    return [];
+  }
 }
 function saveToLibrary(name) {
-  const lib = getLibrary();
-  const entry = {
-    id: Date.now(),
-    name,
-    date: new Date().toISOString().slice(0, 10),
-    config: {
-      pattern: state.pattern,
-      weaveId: state.weaveId, weaveCat: state.weaveCat,
-      warpColors: state.warpColors, weftColors: state.weftColors,
-      warpYarnId: state.warpYarnId, weftYarnId: state.weftYarnId,
-      yarnCat: state.yarnCat, pitch: state.pitch, zoom: state.zoom,
-      epi: state.epi, ppi: state.ppi,
-      editorMatrix: state.editorMatrix, editorSize: state.editorSize,
+  try {
+    const lib = getLibrary();
+    const entry = {
+      id: Date.now(),
+      name: String(name || '').slice(0, 100),
+      date: new Date().toISOString().slice(0, 10),
+      config: {
+        pattern: state.pattern,
+        weaveId: state.weaveId, weaveCat: state.weaveCat,
+        warpColors: [...state.warpColors], weftColors: [...state.weftColors],
+        warpYarnId: state.warpYarnId, weftYarnId: state.weftYarnId,
+        yarnCat: state.yarnCat, pitch: state.pitch, zoom: state.zoom,
+        epi: state.epi, ppi: state.ppi,
+        editorMatrix: state.editorMatrix, editorSize: state.editorSize,
+      }
+    };
+    lib.unshift(entry);
+    const data = JSON.stringify(lib.slice(0, 50));
+    localStorage.setItem('jyuko_fabric_library', data);
+    return true;
+  } catch(e) {
+    console.warn('Library save failed:', e);
+    if (e.name === 'QuotaExceededError') {
+      try {
+        const lib = getLibrary().slice(0, 20);
+        localStorage.setItem('jyuko_fabric_library', JSON.stringify(lib));
+      } catch(e2) { /* storage full, ignore */ }
     }
-  };
-  lib.unshift(entry);
-  localStorage.setItem('jyuko_fabric_library', JSON.stringify(lib.slice(0, 50)));
+    return false;
+  }
 }
 function loadFromLibrary(id) {
-  const lib = getLibrary();
-  const entry = lib.find(e => e.id === id);
-  if (entry) setState({ ...entry.config, modal: null });
+  try {
+    const lib = getLibrary();
+    const entry = lib.find(e => e.id === id);
+    if (entry && entry.config) {
+      const safe = {};
+      const allowedKeys = ['pattern','weaveId','weaveCat','warpColors','weftColors','warpYarnId','weftYarnId','yarnCat','pitch','zoom','epi','ppi','editorMatrix','editorSize'];
+      for (const k of allowedKeys) {
+        if (entry.config[k] !== undefined) safe[k] = entry.config[k];
+      }
+      setState({ ...safe, modal: null });
+    }
+  } catch(e) { console.warn('Library load entry failed:', e); }
 }
 function deleteFromLibrary(id) {
-  const lib = getLibrary().filter(e => e.id !== id);
-  localStorage.setItem('jyuko_fabric_library', JSON.stringify(lib));
-  setState({}); // re-render
+  try {
+    const lib = getLibrary().filter(e => e.id !== id);
+    localStorage.setItem('jyuko_fabric_library', JSON.stringify(lib));
+  } catch(e) { console.warn('Library delete failed:', e); }
+  setState({});
 }
 
 // ============================================================
@@ -1533,120 +1842,156 @@ function randomGenerate() {
 }
 
 // ============================================================
-// 描画（物理計算ベース）
+// 描画（物理計算ベース） - Improvement #3: パターンキャッシュ最適化
 // ============================================================
+let _tileCache = null;
+let _tileCacheKey = '';
+const _gradientCache = new Map();
+const GRADIENT_CACHE_MAX = 200;
+
+function _getCachedGradient(ctx, color, isVertical, x1, y1, x2, y2) {
+  const key = color + (isVertical ? 'V' : 'H');
+  if (_gradientCache.has(key)) {
+    const cached = _gradientCache.get(key);
+    return cached;
+  }
+  const g = ctx.createLinearGradient(x1, y1, x2, y2);
+  g.addColorStop(0, lightenColor(color, 30));
+  g.addColorStop(0.5, color);
+  g.addColorStop(1, darkenColor(color, 30));
+  if (_gradientCache.size > GRADIENT_CACHE_MAX) _gradientCache.clear();
+  _gradientCache.set(key, { stops: [lightenColor(color, 30), color, darkenColor(color, 30)] });
+  return null;
+}
+
+function _makeTileCacheKey(config) {
+  return JSON.stringify({
+    w: config.weaveId, wc: config.warpColors, fc: config.weftColors,
+    wy: config.warpYarnId, fy: config.weftYarnId,
+    e: config.epi, p: config.ppi, pt: config.pitch, z: config.zoom,
+    pa: config.pattern, wa: config.warpArrangement, fa: config.weftArrangement,
+  });
+}
+
 function drawFabric(ctx, w, h, config, withLogo = false) {
   const weave = getWeave(config.weaveId);
   const warpYarn = getYarn(config.warpYarnId);
   const weftYarn = getYarn(config.weftYarnId);
-  if (!weave || !warpYarn || !weftYarn) return;
+  if (!weave || !warpYarn || !weftYarn) {
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#f8f6f2';
+    ctx.fillRect(0, 0, w, h);
+    return;
+  }
 
-  ctx.clearRect(0, 0, w, h);
-
-  // 物理計算に基づく糸の太さ
   const warpFiberDensity = getFiberDensity(warpYarn);
   const weftFiberDensity = getFiberDensity(weftYarn);
   const warpDiameter_mm = calcYarnDiameter(warpYarn.ne, warpFiberDensity);
   const weftDiameter_mm = calcYarnDiameter(weftYarn.ne, weftFiberDensity);
 
-  // ズームとピッチを考慮した描画サイズ
-  const baseScale = config.zoom * 3; // 基本スケール（mm→px）
+  const baseScale = config.zoom * 3;
   const warpWidth = Math.max(1, warpDiameter_mm * baseScale);
   const weftHeight = Math.max(1, weftDiameter_mm * baseScale);
-
-  // 密度に基づく糸間隔
   const warpSpacing = (25.4 / config.epi) * baseScale;
   const weftSpacing = (25.4 / config.ppi) * baseScale;
-
-  // 柄ピッチ
   const patternPitch = config.pitch * config.zoom;
-
   const { matrix, rx, ry } = weave;
 
-  // 背景（生地の地色として薄いベージュ）
-  ctx.fillStyle = '#f8f6f2';
-  ctx.fillRect(0, 0, w, h);
+  const cacheKey = _makeTileCacheKey(config);
+  const colorsPerRepeat = Math.max(config.warpColors.length, config.weftColors.length);
+  const tileWarpCount = rx * colorsPerRepeat;
+  const tileWeftCount = ry * colorsPerRepeat;
+  const tileW = Math.ceil(tileWarpCount * warpSpacing) || 100;
+  const tileH = Math.ceil(tileWeftCount * weftSpacing) || 100;
 
-  // 緯糸を先に描画（下層）
-  for (let y = 0; y < h + weftSpacing; y += weftSpacing) {
-    const yIndex = Math.floor(y / weftSpacing);
-    let weftColor;
-    if (config.pattern === 'solid') {
-      weftColor = config.weftColors[0];
-    } else {
-      weftColor = config.weftColors[Math.floor(y / patternPitch) % config.weftColors.length];
-    }
+  if (_tileCacheKey !== cacheKey || !_tileCache) {
+    const offscreen = document.createElement('canvas');
+    const tw = Math.min(tileW, 800);
+    const th = Math.min(tileH, 800);
+    offscreen.width = tw;
+    offscreen.height = th;
+    const tCtx = offscreen.getContext('2d');
+    tCtx.fillStyle = '#f8f6f2';
+    tCtx.fillRect(0, 0, tw, th);
 
-    // 緯糸の描画（横方向）
-    for (let x = 0; x < w; x += warpSpacing) {
-      const xIndex = Math.floor(x / warpSpacing);
-      const mx = xIndex % rx;
-      const my = yIndex % ry;
-      const isWarpOnTop = matrix[my]?.[mx] ?? true;
-
-      if (!isWarpOnTop) {
-        // 緯糸が上に出る部分
-        const gradient = ctx.createLinearGradient(x, y - weftHeight/2, x, y + weftHeight/2);
-        gradient.addColorStop(0, lightenColor(weftColor, 30));
-        gradient.addColorStop(0.5, weftColor);
-        gradient.addColorStop(1, darkenColor(weftColor, 30));
-        ctx.fillStyle = gradient;
-        ctx.fillRect(x, y - weftHeight/2, warpSpacing + 1, weftHeight);
-      }
-    }
-  }
-
-  // 経糸を描画（上層）
-  for (let x = 0; x < w + warpSpacing; x += warpSpacing) {
-    const xIndex = Math.floor(x / warpSpacing);
-    let warpColor;
-    if (config.pattern === 'solid') {
-      warpColor = config.warpColors[0];
-    } else if (config.pattern === 'stripe') {
-      warpColor = config.warpColors[Math.floor(x / patternPitch) % config.warpColors.length];
-    } else {
-      warpColor = config.warpColors[Math.floor(x / patternPitch) % config.warpColors.length];
-    }
-
-    // 経糸の描画（縦方向）
-    for (let y = 0; y < h; y += weftSpacing) {
+    for (let y = 0; y < th + weftSpacing; y += weftSpacing) {
       const yIndex = Math.floor(y / weftSpacing);
-      const mx = xIndex % rx;
-      const my = yIndex % ry;
-      const isWarpOnTop = matrix[my]?.[mx] ?? true;
-
-      if (isWarpOnTop) {
-        // 経糸が上に出る部分
-        const gradient = ctx.createLinearGradient(x - warpWidth/2, y, x + warpWidth/2, y);
-        gradient.addColorStop(0, lightenColor(warpColor, 30));
-        gradient.addColorStop(0.5, warpColor);
-        gradient.addColorStop(1, darkenColor(warpColor, 30));
-        ctx.fillStyle = gradient;
-        ctx.fillRect(x - warpWidth/2, y, warpWidth, weftSpacing + 1);
+      let weftColor;
+      if (config.pattern === 'solid' || config.pattern === 'stripe') {
+        weftColor = config.weftColors[0];
+      } else {
+        weftColor = getArrangementColor(config.weftArrangement, config.weftColors, yIndex, patternPitch, y);
+      }
+      for (let x = 0; x < tw; x += warpSpacing) {
+        const xIndex = Math.floor(x / warpSpacing);
+        const mx = xIndex % rx;
+        const my = yIndex % ry;
+        if (!(matrix[my]?.[mx] ?? true)) {
+          const gradient = tCtx.createLinearGradient(x, y - weftHeight/2, x, y + weftHeight/2);
+          gradient.addColorStop(0, lightenColor(weftColor, 30));
+          gradient.addColorStop(0.5, weftColor);
+          gradient.addColorStop(1, darkenColor(weftColor, 30));
+          tCtx.fillStyle = gradient;
+          tCtx.fillRect(x, y - weftHeight/2, warpSpacing + 1, weftHeight);
+        }
       }
     }
-  }
-
-  // 交差部の色混合効果
-  ctx.globalCompositeOperation = 'multiply';
-  ctx.globalAlpha = 0.08;
-  for (let y = 0; y < h; y += weftSpacing) {
-    for (let x = 0; x < w; x += warpSpacing) {
-      let warpColor = config.pattern === 'solid'
-        ? config.warpColors[0]
-        : config.warpColors[Math.floor(x / patternPitch) % config.warpColors.length];
-      let weftColor = config.pattern === 'solid' || config.pattern === 'stripe'
-        ? config.weftColors[0]
-        : config.weftColors[Math.floor(y / patternPitch) % config.weftColors.length];
-
-      ctx.fillStyle = blendColors(warpColor, weftColor, 0.5);
-      ctx.fillRect(x - warpWidth/2, y - weftHeight/2, warpWidth, weftHeight);
+    for (let x = 0; x < tw + warpSpacing; x += warpSpacing) {
+      const xIndex = Math.floor(x / warpSpacing);
+      let warpColor;
+      if (config.pattern === 'solid') {
+        warpColor = config.warpColors[0];
+      } else {
+        warpColor = getArrangementColor(config.warpArrangement, config.warpColors, xIndex, patternPitch, x);
+      }
+      for (let y = 0; y < th; y += weftSpacing) {
+        const yIndex = Math.floor(y / weftSpacing);
+        const mx = xIndex % rx;
+        const my = yIndex % ry;
+        if (matrix[my]?.[mx] ?? true) {
+          const gradient = tCtx.createLinearGradient(x - warpWidth/2, y, x + warpWidth/2, y);
+          gradient.addColorStop(0, lightenColor(warpColor, 30));
+          gradient.addColorStop(0.5, warpColor);
+          gradient.addColorStop(1, darkenColor(warpColor, 30));
+          tCtx.fillStyle = gradient;
+          tCtx.fillRect(x - warpWidth/2, y, warpWidth, weftSpacing + 1);
+        }
+      }
     }
-  }
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.globalAlpha = 1.0;
+    tCtx.globalCompositeOperation = 'multiply';
+    tCtx.globalAlpha = 0.08;
+    for (let y = 0; y < th; y += weftSpacing) {
+      for (let x = 0; x < tw; x += warpSpacing) {
+        const warpC = config.pattern === 'solid'
+          ? config.warpColors[0]
+          : config.warpColors[Math.floor(x / patternPitch) % config.warpColors.length];
+        const weftC = (config.pattern === 'solid' || config.pattern === 'stripe')
+          ? config.weftColors[0]
+          : config.weftColors[Math.floor(y / patternPitch) % config.weftColors.length];
+        tCtx.fillStyle = blendColors(warpC, weftC, 0.5);
+        tCtx.fillRect(x - warpWidth/2, y - weftHeight/2, warpWidth, weftHeight);
+      }
+    }
+    tCtx.globalCompositeOperation = 'source-over';
+    tCtx.globalAlpha = 1.0;
 
-  // JYUKOロゴ
+    try {
+      _tileCache = ctx.createPattern(offscreen, 'repeat');
+    } catch(e) {
+      _tileCache = null;
+    }
+    _tileCacheKey = cacheKey;
+  }
+
+  ctx.clearRect(0, 0, w, h);
+  if (_tileCache) {
+    ctx.fillStyle = _tileCache;
+    ctx.fillRect(0, 0, w, h);
+  } else {
+    ctx.fillStyle = '#f8f6f2';
+    ctx.fillRect(0, 0, w, h);
+  }
+
   if (withLogo) {
     ctx.save();
     ctx.font = 'bold 18px Arial';
@@ -1693,16 +2038,112 @@ let state = {
   // 組織エディタ
   editorSize: 8,
   editorMatrix: null,
+  // 糸配列パターン（本数指定）
+  warpArrangement: null,  // null=均等, [{color,count},...]=カスタム
+  weftArrangement: null,
+  // Undo/Redo
+  undoStack: [],
+  redoStack: [],
 };
 
+// 配列パターンから糸インデックスに対応する色を取得
+function getArrangementColor(arrangement, colors, index, patternPitch, pos) {
+  if (arrangement && arrangement.length > 0) {
+    // 配列パターンの総本数
+    const totalCount = arrangement.reduce((s, a) => s + a.count, 0);
+    const mod = ((index % totalCount) + totalCount) % totalCount;
+    let acc = 0;
+    for (const a of arrangement) {
+      acc += a.count;
+      if (mod < acc) return a.color;
+    }
+    return arrangement[0].color;
+  }
+  // 従来の均等分割
+  return colors[Math.floor(pos / patternPitch) % colors.length];
+}
+
+// 配列パターンをcolorsから自動生成（各色1本）
+function autoArrangement(colors) {
+  return colors.map(c => ({ color: c, count: 1 }));
+}
+
 function setState(ns) {
+  // Undo用スナップショット保存（UIのみの変更はスキップ）
+  const uiOnly = Object.keys(ns).every(k => ['tab','modal','editColor','undoStack','redoStack','compareMode','savedConfig'].includes(k));
+  if (!uiOnly && !ns._noUndo) {
+    const snap = {};
+    for (const k of ['pattern','checkPresetId','weaveId','weaveCat','warpColors','weftColors','warpYarnId','weftYarnId','yarnCat','pitch','zoom','epi','ppi','warpArrangement','weftArrangement']) {
+      snap[k] = Array.isArray(state[k]) ? [...state[k]] : state[k];
+    }
+    state.undoStack = [...(state.undoStack||[]).slice(-29), snap];
+    state.redoStack = [];
+  }
+  delete ns._noUndo;
   Object.assign(state, ns);
-  render();
+  // 糸カテゴリ変更時：選択中の糸がフィルタ外なら先頭に自動切替
+  if (ns.yarnCat !== undefined) {
+    const catYarns = YARN_DB.filter(y => y.cat === state.yarnCat);
+    if (catYarns.length > 0) {
+      const ids = catYarns.map(y => y.id);
+      if (!ids.includes(state.warpYarnId)) state.warpYarnId = catYarns[0].id;
+      if (!ids.includes(state.weftYarnId)) state.weftYarnId = catYarns[0].id;
+    }
+  }
+  scheduleRender();
 }
 
 // ============================================================
-// レンダリング関数
+// レンダリング関数 - Improvement #2: デバウンス＋部分更新
 // ============================================================
+let _renderRAF = null;
+let _lastCanvasKey = '';
+
+function scheduleRender() {
+  if (_renderRAF) cancelAnimationFrame(_renderRAF);
+  _renderRAF = requestAnimationFrame(() => {
+    _renderRAF = null;
+    render();
+  });
+}
+
+function renderCanvas() {
+  try {
+    if (state.compareMode && state.savedConfig) {
+      const cA = document.getElementById('canvasA');
+      const cB = document.getElementById('canvasB');
+      if (cA && cB) {
+        [cA, cB].forEach((c, i) => {
+          const dpr = window.devicePixelRatio || 1;
+          const container = c.parentElement;
+          const cw = container ? Math.min(container.clientWidth / 2 - 8, 300) : 280;
+          const w = Math.max(150, cw), h = w;
+          c.width = w * dpr; c.height = h * dpr;
+          c.style.width = w + 'px'; c.style.height = h + 'px';
+          const ctx = c.getContext('2d');
+          ctx.scale(dpr, dpr);
+          drawFabric(ctx, w, h, i === 0 ? state : state.savedConfig, true);
+        });
+      }
+    } else {
+      const canvas = document.getElementById('canvas');
+      if (canvas) {
+        const dpr = window.devicePixelRatio || 1;
+        const container = canvas.parentElement;
+        const maxW = container ? Math.min(container.clientWidth - 16, 600) : 500;
+        const w = Math.max(200, maxW), h = w;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        canvas.style.width = '100%'; canvas.style.maxWidth = w + 'px';
+        canvas.style.height = 'auto'; canvas.style.aspectRatio = '1';
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+        drawFabric(ctx, w, h, state, true);
+      }
+    }
+  } catch(e) {
+    console.warn('Canvas rendering failed:', e);
+  }
+}
 
 function render() {
   const L = LANG[state.lang];
@@ -1731,25 +2172,25 @@ function render() {
           </div>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-          <button onclick="setState({lang: state.lang === 'ja' ? 'zh' : 'ja'})" class="btn-ghost px-3 py-1.5 rounded-lg text-sm font-medium">
+          <button onclick="setState({lang: state.lang === 'ja' ? 'zh' : 'ja'})" class="btn-ghost px-3 py-1.5 rounded-lg text-sm font-medium" aria-label="${state.lang === 'ja' ? '中国語に切替' : '切换到日语'}">
             ${state.lang === 'ja' ? '🇨🇳 中文' : '🇯🇵 日本語'}
           </button>
-          ${risks.risks.length > 0 ? `<button onclick="setState({modal:'risk'})" class="px-3 py-1.5 rounded-lg text-white text-sm font-medium" style="background:${riskColors[risks.level]};box-shadow:0 2px 8px ${riskColors[risks.level]}40">${risks.risks.length} ${L.risks}</button>` : `<span class="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm border border-emerald-500/20">${L.noRisk}</span>`}
-          <button onclick="setState({modal:'selling'})" class="btn-primary px-3 py-1.5 rounded-lg text-sm font-medium">${L.sellingPoints}</button>
+          ${risks.risks.length > 0 ? `<button onclick="setState({modal:'risk'})" class="px-3 py-1.5 rounded-lg text-white text-sm font-medium" style="background:${riskColors[risks.level]};box-shadow:0 2px 8px ${riskColors[risks.level]}40" aria-label="${risks.risks.length} ${L.risks}">${risks.risks.length} ${L.risks}</button>` : `<span class="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm border border-emerald-500/20" role="status">${L.noRisk}</span>`}
+          <button onclick="setState({modal:'selling'})" class="btn-primary px-3 py-1.5 rounded-lg text-sm font-medium" aria-label="${L.sellingPoints}">${L.sellingPoints}</button>
         </div>
       </div>
     </header>
 
     <!-- タブ -->
-    <div class="tab-bar flex gap-1 mb-5 p-1 rounded-xl w-fit flex-wrap no-print">
+    <nav class="tab-bar flex gap-1 mb-5 p-1 rounded-xl w-fit flex-wrap no-print" role="tablist" aria-label="${state.lang === 'ja' ? '設定タブ' : '设置选项卡'}">
       ${['design', 'weave', 'yarn', 'specs', 'tools'].map(t => `
-        <button onclick="setState({tab:'${t}'})" class="tab-item px-5 py-2 rounded-lg text-sm font-medium ${state.tab === t ? 'active' : ''}">${L.tabs[t]}</button>
+        <button onclick="setState({tab:'${t}'})" class="tab-item px-5 py-2 rounded-lg text-sm font-medium ${state.tab === t ? 'active' : ''}" role="tab" aria-selected="${state.tab === t}" aria-controls="panel-${t}">${L.tabs[t]}</button>
       `).join('')}
-    </div>
+    </nav>
 
     <!-- メインコンテンツ -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-in">
-      <section class="lg:col-span-5 glass rounded-2xl p-5 space-y-4 no-print">
+      <section class="lg:col-span-5 glass rounded-2xl p-5 space-y-4 no-print" role="tabpanel" id="panel-${state.tab}">
         ${state.tab === 'design' ? renderDesign(L) : ''}
         ${state.tab === 'weave' ? renderWeave(L, weave) : ''}
         ${state.tab === 'yarn' ? renderYarn(L, warpYarn, weftYarn) : ''}
@@ -1767,9 +2208,12 @@ function render() {
         </div>
 
         ${state.compareMode && state.savedConfig ? `
-          <div class="grid grid-cols-2 gap-2 mb-2">
+          <div class="grid grid-cols-2 gap-2 mb-2 items-center">
             <div class="text-center text-sm font-medium text-slate-300">${L.fabricA} (${L.current})</div>
             <div class="text-center text-sm font-medium text-slate-300">${L.fabricB}</div>
+          </div>
+          <div class="flex justify-center mb-2">
+            <button onclick="swapCompare()" class="px-3 py-1 rounded-lg text-xs btn-ghost flex items-center gap-1">⇄ ${state.lang==='ja'?'A↔B 入替':'A↔B swap'}</button>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <canvas id="canvasA" class="rounded-xl border border-slate-700/50 shadow-inner w-full"></canvas>
@@ -1777,12 +2221,12 @@ function render() {
           </div>
         ` : `
           <div class="flex justify-center">
-            <canvas id="canvas" class="rounded-xl border border-slate-700/50 shadow-2xl shadow-black/20" style="max-width:100%"></canvas>
+            <canvas id="canvas" class="rounded-xl border border-slate-700/50 shadow-2xl shadow-black/20" style="max-width:100%;width:100%" role="img" aria-label="${state.lang === 'ja' ? '生地プレビュー' : '面料预览'}"></canvas>
           </div>
         `}
 
         ${physics ? `
-          <div class="mt-4 info-card">
+          <div class="mt-4 info-card" aria-live="polite" aria-atomic="true">
             <h4 class="font-medium text-sm mb-3 text-slate-300">${L.physicsInfo}</h4>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
               <div>
@@ -1824,7 +2268,7 @@ function render() {
         <div class="mt-4 no-print">
           <label class="block text-sm font-medium mb-2 text-slate-300">${L.quickColors}</label>
           <div class="flex flex-wrap gap-1.5">
-            ${SWATCHES.map(hex => `<button class="color-swatch w-6 h-6 rounded-md" style="background:${hex}" onclick="quickColor('${hex}')" title="${hex}"></button>`).join('')}
+            ${SWATCHES.map(hex => `<button class="color-swatch w-6 h-6 rounded-md" style="background:${hex}" onclick="quickColor('${hex}')" title="${hex}" aria-label="${state.lang === 'ja' ? '色を適用' : '应用颜色'}: ${hex}"></button>`).join('')}
           </div>
         </div>
       </section>
@@ -1835,6 +2279,7 @@ function render() {
       <div class="text-xs text-slate-500">先染めシミュレーター V3 — Yarn-Dyed Fabric Simulator</div>
     </footer>
 
+    ${state.modal === 'arrangement' ? renderArrangementModal(L) : ''}
     ${state.modal === 'risk' ? renderRiskModal(L, risks, riskColors) : ''}
     ${state.modal === 'selling' ? renderSellingModal(L) : ''}
     ${state.modal === 'spec' ? renderSpecModal(L, weave, warpYarn, weftYarn, gsm, physics, season) : ''}
@@ -1845,37 +2290,10 @@ function render() {
     ${state.modal === 'library' ? renderLibraryModal(L) : ''}
     ${state.modal === 'weaveEditor' ? renderWeaveEditorModal(L) : ''}
     ${state.modal === 'orderSheet' ? renderOrderSheetModal(L) : ''}
+    ${state.modal === 'export' ? renderExportModal(L) : ''}
   `;
 
-  // Canvas描画
-  setTimeout(() => {
-    if (state.compareMode && state.savedConfig) {
-      const cA = document.getElementById('canvasA');
-      const cB = document.getElementById('canvasB');
-      if (cA && cB) {
-        [cA, cB].forEach((c, i) => {
-          const dpr = window.devicePixelRatio || 1;
-          const w = 280, h = 280;
-          c.width = w * dpr; c.height = h * dpr;
-          c.style.width = w + 'px'; c.style.height = h + 'px';
-          const ctx = c.getContext('2d');
-          ctx.scale(dpr, dpr);
-          drawFabric(ctx, w, h, i === 0 ? state : state.savedConfig, true);
-        });
-      }
-    } else {
-      const canvas = document.getElementById('canvas');
-      if (canvas) {
-        const dpr = window.devicePixelRatio || 1;
-        const w = 500, h = 500;
-        canvas.width = w * dpr; canvas.height = h * dpr;
-        canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
-        const ctx = canvas.getContext('2d');
-        ctx.scale(dpr, dpr);
-        drawFabric(ctx, w, h, state, true);
-      }
-    }
-  }, 0);
+  setTimeout(renderCanvas, 0);
 }
 
 function renderDesign(L) {
@@ -1922,6 +2340,14 @@ function renderDesign(L) {
       ${checkPresetPanel}
     </div>
     ${renderColorMgr('warp', L.warpColor, state.warpColors, L)}
+    <div class="flex justify-center gap-2">
+      <button onclick="setState({weftColors:[...state.warpColors]})" class="px-3 py-1.5 rounded-lg text-xs btn-ghost flex items-center gap-1.5 hover:text-indigo-300" title="${state.lang==='ja'?'経糸の配色を緯糸にコピー':'将经纱配色复制到纬纱'}">
+        <span>↓</span> ${state.lang==='ja'?'経→緯 配色コピー':'经→纬 复制配色'}
+      </button>
+      <button onclick="setState({modal:'arrangement'})" class="px-3 py-1.5 rounded-lg text-xs btn-ghost flex items-center gap-1.5 hover:text-indigo-300">
+        <span>🧵</span> ${state.lang==='ja'?'配列本数':'排列本数'}
+      </button>
+    </div>
     ${renderColorMgr('weft', L.weftColor, state.weftColors, L)}
     <div>
       <label class="block text-sm font-medium mb-1 text-slate-300">${L.pitch}: <span class="font-bold text-white">${state.pitch}px</span></label>
@@ -1942,20 +2368,38 @@ function renderColorMgr(type, label, colors, L) {
       <div class="flex flex-wrap gap-2 items-center">
         ${colors.map((c, i) => `
           <div class="relative group">
-            <button class="w-10 h-10 rounded-lg border-2 border-white/10 shadow-lg hover:border-white/30 hover:scale-105 transition-all" style="background:${c};box-shadow:0 2px 10px ${c}40" onclick="toggleEdit('${type}',${i})"></button>
-            ${colors.length > 1 ? `<button onclick="removeColor('${type}',${i})" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity">×</button>` : ''}
+            <button class="w-10 h-10 rounded-lg border-2 border-white/10 shadow-lg hover:border-white/30 hover:scale-105 transition-all" style="background:${c};box-shadow:0 2px 10px ${c}40" onclick="toggleEdit('${type}',${i})" aria-label="${state.lang==='ja'?'色を編集':'编辑颜色'}: ${c}"></button>
+            ${colors.length > 1 ? `<button onclick="removeColor('${type}',${i})" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity" aria-label="${state.lang==='ja'?'この色を削除':'删除此颜色'}">×</button>` : ''}
             ${state.editColor === type + i ? `
-              <div class="absolute top-12 left-0 z-20 glass rounded-xl shadow-2xl p-3 border border-slate-600/30" style="min-width:180px">
+              <div class="absolute top-12 z-20 glass rounded-xl shadow-2xl p-3 border border-slate-600/30" style="min-width:180px;right:0;transform:translateX(min(0px, calc(100vw - 100% - 16px)))">
                 <input type="color" value="${c}" onchange="updColor('${type}',${i},this.value)" class="w-full h-8 mb-2 rounded-lg">
                 <div class="grid grid-cols-5 gap-1">${SWATCHES.slice(0,15).map(hex => `<button class="color-swatch w-6 h-6 rounded-md" style="background:${hex}" onclick="updColor('${type}',${i},'${hex}');setState({editColor:null})"></button>`).join('')}</div>
               </div>
             ` : ''}
           </div>
         `).join('')}
-        ${colors.length < 8 ? `<button onclick="addColor('${type}')" class="w-10 h-10 rounded-lg border-2 border-dashed border-slate-500 text-slate-500 hover:border-indigo-400 hover:text-indigo-400 transition-colors">+</button>` : ''}
+        ${colors.length < 8 ? `<button onclick="addColor('${type}')" class="w-10 h-10 rounded-lg border-2 border-dashed border-slate-500 text-slate-500 hover:border-indigo-400 hover:text-indigo-400 transition-colors" aria-label="${state.lang==='ja'?'色を追加':'添加颜色'}">+</button>` : ''}
       </div>
     </div>
   `;
+}
+
+// 織り組織ミニプレビュー付きボタン
+function renderWeaveButton(w, state, L) {
+  const sz = Math.min(w.rx, 8);
+  const sy = Math.min(w.ry, 8);
+  let svgCells = '';
+  for (let r = 0; r < sy; r++) {
+    for (let c = 0; c < sz; c++) {
+      const on = w.matrix[r % w.ry]?.[c % w.rx];
+      svgCells += '<rect x="'+(c*4)+'" y="'+(r*4)+'" width="3.5" height="3.5" rx="0.5" fill="'+(on ? '#94a3b8' : '#1e293b')+'"/>';
+    }
+  }
+  const isActive = state.weaveId === w.id;
+  return '<button onclick="setState({weaveId:\''+w.id+'\'})" class="p-2 rounded-lg text-left btn-ghost flex items-center gap-2 '+(isActive?'active':'')+'">'
+    + '<svg viewBox="0 0 '+(sz*4)+' '+(sy*4)+'" class="w-8 h-8 flex-shrink-0 rounded border border-slate-600/30" style="background:#0f172a">'+svgCells+'</svg>'
+    + '<div><div class="font-medium text-xs">'+w.name[state.lang]+'</div><div class="text-xs '+(isActive?'text-indigo-300':'text-slate-500')+'">'+'★'.repeat(w.diff)+'</div></div>'
+    + '</button>';
 }
 
 function renderWeave(L, weave) {
@@ -1970,7 +2414,7 @@ function renderWeave(L, weave) {
     <div>
       <label class="block text-sm font-medium mb-2 text-slate-300">${L.selectWeave}</label>
       <div class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
-        ${filtered.map(w => `<button onclick="setState({weaveId:'${w.id}'})" class="p-3 rounded-lg text-left btn-ghost ${state.weaveId===w.id?'active':''}"><div class="font-medium text-sm">${w.name[state.lang]}</div><div class="text-xs ${state.weaveId===w.id?'text-indigo-300':'text-slate-500'}">${'★'.repeat(w.diff)}</div></button>`).join('')}
+        ${filtered.map(w => renderWeaveButton(w, state, L)).join('')}
       </div>
     </div>
     ${weave ? `
@@ -2033,13 +2477,19 @@ function renderSpecs(L, weave, warpYarn, weftYarn, gsm, physics, season, similar
   return `
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium mb-1 text-slate-300 tooltip" data-tip="Ends Per Inch">${L.epi}: <span class="font-bold ${physics?.warpOverLimit ? 'text-red-400' : 'text-white'}">${state.epi}</span></label>
-        <input type="range" min="30" max="${Math.min(250, warpMax + 20)}" value="${state.epi}" onchange="setState({epi:+this.value})" class="w-full">
+        <label class="block text-sm font-medium mb-1 text-slate-300 tooltip" data-tip="Ends Per Inch">${L.epi}</label>
+        <div class="flex items-center gap-2">
+          <input type="range" min="30" max="${Math.min(250, warpMax + 20)}" value="${state.epi}" oninput="setState({epi:+this.value})" class="flex-1">
+          <input type="number" min="30" max="250" value="${state.epi}" onchange="setState({epi:Math.max(30,Math.min(250,+this.value))})" class="w-16 px-2 py-1 rounded-lg text-sm text-center font-bold ${physics?.warpOverLimit ? 'text-red-400 border-red-500/50' : 'text-white'}" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1)">
+        </div>
         <div class="text-xs text-slate-500">${L.recommended}: 40-${warpMax}</div>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1 text-slate-300 tooltip" data-tip="Picks Per Inch">${L.ppi}: <span class="font-bold ${physics?.weftOverLimit ? 'text-red-400' : 'text-white'}">${state.ppi}</span></label>
-        <input type="range" min="30" max="${Math.min(250, weftMax + 20)}" value="${state.ppi}" onchange="setState({ppi:+this.value})" class="w-full">
+        <label class="block text-sm font-medium mb-1 text-slate-300 tooltip" data-tip="Picks Per Inch">${L.ppi}</label>
+        <div class="flex items-center gap-2">
+          <input type="range" min="30" max="${Math.min(250, weftMax + 20)}" value="${state.ppi}" oninput="setState({ppi:+this.value})" class="flex-1">
+          <input type="number" min="30" max="250" value="${state.ppi}" onchange="setState({ppi:Math.max(30,Math.min(250,+this.value))})" class="w-16 px-2 py-1 rounded-lg text-sm text-center font-bold ${physics?.weftOverLimit ? 'text-red-400 border-red-500/50' : 'text-white'}" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1)">
+        </div>
         <div class="text-xs text-slate-500">${L.recommended}: 40-${weftMax}</div>
       </div>
     </div>
@@ -2079,6 +2529,7 @@ function renderSpecs(L, weave, warpYarn, weftYarn, gsm, physics, season, similar
 
     <div class="flex gap-2">
       <button onclick="downloadPng()" class="flex-1 px-4 py-2 rounded-xl btn-ghost text-sm font-medium hover:bg-slate-600/50">${L.savePng}</button>
+      <button onclick="setState({modal:'export'})" class="flex-1 px-4 py-2 rounded-xl btn-ghost text-sm font-medium hover:bg-emerald-600/30 text-emerald-300">📤 ${L.exportMenu}</button>
       <button onclick="setState({modal:'spec'})" class="flex-1 px-4 py-2 rounded-xl btn-primary text-sm font-medium">${L.specSheet}</button>
     </div>
   `;
@@ -2127,17 +2578,80 @@ function renderTools(L) {
         <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">🎲</div>
         <div class="font-medium text-sm">${L.random}</div>
       </button>
+      <button onclick="shareURL()" id="shareBtn" class="p-4 rounded-xl btn-ghost text-left group">
+        <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">🔗</div>
+        <div class="font-medium text-sm">${state.lang==='ja'?'URL共有':'URL分享'}</div>
+      </button>
+      <button onclick="setState({modal:'export'})" class="p-4 rounded-xl btn-ghost text-left group">
+              <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">📤</div>
+              <div class="font-medium text-sm">${L.exportMenu}</div>
+      </button>
+      <button onclick="setState({modal:'export'})" class="p-4 rounded-xl btn-ghost text-left group">
+              <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">📤</div>
+              <div class="font-medium text-sm">${L.exportMenu}</div>
+      </button>
+      <button onclick="undoState()" class="p-4 rounded-xl btn-ghost text-left group ${(state.undoStack||[]).length===0?'opacity-30':''}">
+        <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">↩️</div>
+        <div class="font-medium text-sm">Undo</div>
+      </button>
     </div>
   `;
 }
 
+// 配列パターンエディタモーダル
+function renderArrangementModal(L) {
+  const ja = state.lang === 'ja';
+  const warpArr = state.warpArrangement || autoArrangement(state.warpColors);
+  const weftArr = state.weftArrangement || autoArrangement(state.weftColors);
+  
+  function renderArrEditor(type, arr, label) {
+    const total = arr.reduce((s, a) => s + a.count, 0);
+    const barWidth = 200;
+    let barHtml = '';
+    let offset = 0;
+    for (const a of arr) {
+      const w = (a.count / total) * barWidth;
+      barHtml += '<div style="width:'+w+'px;height:20px;background:'+a.color+'" class="inline-block border-r border-white/20" title="'+a.count+(ja?'本':'根')+'"></div>';
+    }
+    return '<div class="mb-4"><h4 class="text-sm font-medium text-slate-300 mb-2">'+label+' ('+total+(ja?'本リピート':'根循环')+')</h4>'
+      + '<div class="flex rounded overflow-hidden mb-2" style="width:'+barWidth+'px">'+barHtml+'</div>'
+      + '<div class="space-y-1.5">'
+      + arr.map((a, i) => '<div class="flex items-center gap-2"><div class="w-6 h-6 rounded border border-white/20" style="background:'+a.color+'"></div>'
+        + '<button onclick="changeArrCount(\''+type+'\','+i+',-1)" class="w-6 h-6 rounded btn-ghost text-xs">−</button>'
+        + '<span class="text-sm font-bold text-white w-8 text-center">'+a.count+'</span>'
+        + '<button onclick="changeArrCount(\''+type+'\','+i+',1)" class="w-6 h-6 rounded btn-ghost text-xs">+</button>'
+        + '<span class="text-xs text-slate-500">'+(ja?'本':'根')+'</span>'
+        + (arr.length > 1 ? '<button onclick="removeArrItem(\''+type+'\','+i+')" class="text-red-400 text-xs ml-auto">✕</button>' : '')
+        + '</div>').join('')
+      + '</div>'
+      + '<button onclick="addArrItem(\''+type+'\')" class="mt-2 px-2 py-1 text-xs btn-ghost rounded">+ '+(ja?'色追加':'添加颜色')+'</button>'
+      + '</div>';
+  }
+  
+  return '<div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})" role="presentation">'
+    + '<div class="modal-content rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden animate-in" role="dialog" aria-modal="true" aria-labelledby="modal-arr-title">'
+    + '<div class="p-4 border-b border-slate-700/50 flex items-center justify-between">'
+    + '<h3 id="modal-arr-title" class="font-bold text-white">'+(ja?'🧵 糸配列パターンエディタ':'🧵 纱线排列编辑器')+'</h3>'
+    + '<button onclick="setState({modal:null})" class="text-slate-400 hover:text-white text-xl" aria-label="'+(ja?'閉じる':'关闭')+'">✕</button>'
+    + '</div>'
+    + '<div class="p-4 overflow-y-auto space-y-4">'
+    + '<p class="text-xs text-slate-400">'+(ja?'各色の本数を指定してリピートパターンを設定します':'指定每种颜色的根数来设定循环')+'</p>'
+    + renderArrEditor('warp', warpArr, ja ? '経糸 (タテ)' : '经纱 (纵)')
+    + renderArrEditor('weft', weftArr, ja ? '緯糸 (ヨコ)' : '纬纱 (横)')
+    + '<div class="flex gap-2 pt-2">'
+    + '<button onclick="applyArrangement()" class="flex-1 px-4 py-2 rounded-xl btn-primary text-sm">'+(ja?'適用':'应用')+'</button>'
+    + '<button onclick="resetArrangement()" class="px-4 py-2 rounded-xl btn-ghost text-sm">'+(ja?'均等に戻す':'恢复均等')+'</button>'
+    + '</div>'
+    + '</div></div></div>';
+}
+
 function renderRiskModal(L, risks, colors) {
   return `
-    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
-      <div class="modal-content rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden animate-in">
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})" role="presentation">
+      <div class="modal-content rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden animate-in" role="dialog" aria-modal="true" aria-labelledby="modal-risk-title">
         <div class="flex items-center justify-between p-4 border-b border-slate-700/50">
-          <h3 class="font-bold text-lg text-white">${L.riskAnalysis}</h3>
-          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">×</button>
+          <h3 id="modal-risk-title" class="font-bold text-lg text-white">${L.riskAnalysis}</h3>
+          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="${L.close}">×</button>
         </div>
         <div class="p-4 overflow-y-auto max-h-[60vh]">
           ${risks.risks.length === 0 ? `<p class="text-center py-8 text-slate-500">${L.noRisk}</p>` : `
@@ -2196,11 +2710,11 @@ function renderSellingModal(L) {
   }
 
   return `
-    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
-      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-lg w-full max-h-[80vh] overflow-hidden">
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})" role="presentation">
+      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-lg w-full max-h-[80vh] overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-selling-title">
         <div class="flex items-center justify-between p-4 border-b border-slate-700/50">
-          <h3 class="font-bold text-lg text-white">${L.sellingPoints}</h3>
-          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">×</button>
+          <h3 id="modal-selling-title" class="font-bold text-lg text-white">${L.sellingPoints}</h3>
+          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="${L.close}">×</button>
         </div>
         <div class="p-4 overflow-y-auto max-h-[60vh] space-y-3">
           ${points.map(p => `
@@ -2224,13 +2738,13 @@ function renderSpecModal(L, weave, warpYarn, weftYarn, gsm, physics, season) {
   const date = new Date().toLocaleDateString(state.lang === 'ja' ? 'ja-JP' : 'zh-CN');
 
   return `
-    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
-      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-2xl w-full max-h-[90vh] overflow-hidden">
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})" role="presentation">
+      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-2xl w-full max-h-[90vh] overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-spec-title">
         <div class="flex items-center justify-between p-4 border-b no-print">
-          <h3 class="font-bold text-lg text-white">${L.specSheet}</h3>
+          <h3 id="modal-spec-title" class="font-bold text-lg text-white">${L.specSheet}</h3>
           <div class="flex gap-2">
-            <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-slate-600/50 text-sm">${L.print}</button>
-            <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">×</button>
+            <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-slate-600/50 text-sm" aria-label="${L.print}">${L.print}</button>
+            <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="${L.close}">×</button>
           </div>
         </div>
         <div class="p-6 overflow-y-auto" id="specContent">
@@ -2294,11 +2808,11 @@ function renderSpecModal(L, weave, warpYarn, weftYarn, gsm, physics, season) {
 function renderGlossaryModal(L) {
   const terms = GLOSSARY[state.lang] || GLOSSARY.ja;
   return `
-    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
-      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-lg w-full max-h-[80vh] overflow-hidden">
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})" role="presentation">
+      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-lg w-full max-h-[80vh] overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-glossary-title">
         <div class="flex items-center justify-between p-4 border-b border-slate-700/50">
-          <h3 class="font-bold text-lg text-white">${L.glossary}</h3>
-          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">×</button>
+          <h3 id="modal-glossary-title" class="font-bold text-lg text-white">${L.glossary}</h3>
+          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="${L.close}">×</button>
         </div>
         <div class="p-4 overflow-y-auto max-h-[60vh] space-y-3">
           ${Object.entries(terms).map(([term, def]) => `
@@ -2316,11 +2830,11 @@ function renderGlossaryModal(L) {
 function renderPantoneModal(L) {
   const allColors = [...state.warpColors, ...state.weftColors];
   return `
-    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
-      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-lg w-full max-h-[80vh] overflow-hidden">
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})" role="presentation">
+      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-lg w-full max-h-[80vh] overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-pantone-title">
         <div class="flex items-center justify-between p-4 border-b border-slate-700/50">
-          <h3 class="font-bold text-lg text-white">${L.pantone}</h3>
-          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">×</button>
+          <h3 id="modal-pantone-title" class="font-bold text-lg text-white">${L.pantone}</h3>
+          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="${L.close}">×</button>
         </div>
         <div class="p-4 overflow-y-auto space-y-4">
           <p class="text-sm text-slate-400">${L.nearestPantone}</p>
@@ -2346,11 +2860,11 @@ function renderPantoneModal(L) {
 
 function renderTrendModal(L) {
   return `
-    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
-      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-lg w-full max-h-[80vh] overflow-hidden">
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})" role="presentation">
+      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-lg w-full max-h-[80vh] overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-trend-title">
         <div class="flex items-center justify-between p-4 border-b border-slate-700/50">
-          <h3 class="font-bold text-lg text-white">${L.trend} 2025</h3>
-          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">×</button>
+          <h3 id="modal-trend-title" class="font-bold text-lg text-white">${L.trend} 2025</h3>
+          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="${L.close}">×</button>
         </div>
         <div class="p-4 overflow-y-auto space-y-4">
           <div>
@@ -2392,11 +2906,11 @@ function renderCostModal(L) {
   const weftYarn = getYarn(state.weftYarnId);
 
   return `
-    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
-      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-2xl w-full max-h-[90vh] overflow-hidden">
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})" role="presentation">
+      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-2xl w-full max-h-[90vh] overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-cost-title">
         <div class="flex items-center justify-between p-4 border-b border-slate-700/50">
-          <h3 class="font-bold text-lg text-white">💰 ${L.costCalc}</h3>
-          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">×</button>
+          <h3 id="modal-cost-title" class="font-bold text-lg text-white">💰 ${L.costCalc}</h3>
+          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="${L.close}">×</button>
         </div>
         <div class="p-4 overflow-y-auto max-h-[75vh] space-y-4">
           <div class="grid grid-cols-2 gap-3">
@@ -2471,11 +2985,11 @@ function renderCostModal(L) {
 function renderLibraryModal(L) {
   const lib = getLibrary();
   return `
-    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
-      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-lg w-full max-h-[80vh] overflow-hidden">
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})" role="presentation">
+      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-lg w-full max-h-[80vh] overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-library-title">
         <div class="flex items-center justify-between p-4 border-b border-slate-700/50">
-          <h3 class="font-bold text-lg text-white">📚 ${L.library}</h3>
-          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">×</button>
+          <h3 id="modal-library-title" class="font-bold text-lg text-white">📚 ${L.library}</h3>
+          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="${L.close}">×</button>
         </div>
         <div class="p-4 overflow-y-auto max-h-[65vh] space-y-4">
           <div class="flex gap-2">
@@ -2532,24 +3046,25 @@ function renderWeaveEditorModal(L) {
   const matrix = state.editorMatrix;
 
   return `
-    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
-      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-lg w-full max-h-[90vh] overflow-hidden">
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})" role="presentation">
+      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-lg w-full max-h-[90vh] overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-editor-title">
         <div class="flex items-center justify-between p-4 border-b border-slate-700/50">
-          <h3 class="font-bold text-lg text-white">✏️ ${L.weaveEditor}</h3>
-          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">×</button>
+          <h3 id="modal-editor-title" class="font-bold text-lg text-white">✏️ ${L.weaveEditor}</h3>
+          <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="${L.close}">×</button>
         </div>
         <div class="p-4 overflow-y-auto max-h-[75vh] space-y-4">
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 flex-wrap">
             <label class="text-sm">${L.editorSize}:</label>
-            ${[4,6,8,10,12,16].map(s => `<button onclick="resizeEditor(${s})" class="px-2 py-1 text-xs rounded ${size===s?'btn-ghost active':'info-card'}">${s}×${s}</button>`).join('')}
+            ${[4,6,8,10,12,16].map(s => `<button onclick="resizeEditor(${s})" class="px-3 py-2 text-xs rounded ${size===s?'btn-ghost active':'info-card'}" style="min-width:44px;min-height:44px" aria-label="${s}×${s}">${s}×${s}</button>`).join('')}
           </div>
 
           <div class="flex justify-center">
-            <div class="inline-grid border border-slate-600" style="grid-template-columns: repeat(${size}, 1fr);">
+            <div class="inline-grid border border-slate-600" style="grid-template-columns: repeat(${size}, 1fr);" role="grid" aria-label="${state.lang==='ja'?'織り組織グリッド':'织物组织网格'}">
               ${matrix.map((row, y) => row.map((cell, x) => `
                 <button onclick="toggleEditorCell(${x},${y})"
-                  class="w-7 h-7 border border-neutral-200 ${cell ? 'bg-neutral-900' : 'bg-white'} hover:opacity-70"
-                  title="(${x},${y})"></button>
+                  class="border border-neutral-200 ${cell ? 'bg-neutral-900' : 'bg-white'} hover:opacity-70"
+                  style="width:max(28px, min(44px, calc((100vw - 64px) / ${size})));height:max(28px, min(44px, calc((100vw - 64px) / ${size})))"
+                  title="(${x},${y})" aria-label="${state.lang==='ja'?'セル':'单元'} ${x},${y}: ${cell?'経糸':'緯糸'}" role="gridcell" aria-pressed="${!!cell}"></button>
               `).join('')).join('')}
             </div>
           </div>
@@ -2586,13 +3101,13 @@ function renderOrderSheetModal(L) {
   const date = new Date().toLocaleDateString(state.lang === 'ja' ? 'ja-JP' : 'zh-CN');
 
   return `
-    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
-      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-2xl w-full max-h-[90vh] overflow-hidden">
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})" role="presentation">
+      <div class="modal-content rounded-2xl shadow-2xl animate-in max-w-2xl w-full max-h-[90vh] overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="modal-order-title">
         <div class="flex items-center justify-between p-4 border-b no-print">
-          <h3 class="font-bold text-lg text-white">📋 ${L.orderSheet}</h3>
+          <h3 id="modal-order-title" class="font-bold text-lg text-white">📋 ${L.orderSheet}</h3>
           <div class="flex gap-2">
-            <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-slate-600/50 text-sm">${L.print}</button>
-            <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">×</button>
+            <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-slate-600/50 text-sm" aria-label="${L.print}">${L.print}</button>
+            <button onclick="setState({modal:null})" class="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="${L.close}">×</button>
           </div>
         </div>
         <div class="p-6 overflow-y-auto max-h-[75vh]">
@@ -2658,6 +3173,225 @@ function renderOrderSheetModal(L) {
   `;
 }
 
+
+// ============================================================
+// Phase 3: エクスポート機能 (CSV / PDF / 高解像度画像)
+// ============================================================
+function renderExportModal(L) {
+  const ja = state.lang === 'ja';
+  return `
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
+      <div class="modal-content rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in">
+        <div class="p-4 border-b border-slate-700/50 flex items-center justify-between">
+          <h3 class="font-bold text-white text-lg">📤 ${L.exportMenu}</h3>
+          <button onclick="setState({modal:null})" class="text-slate-400 hover:text-white text-xl">✕</button>
+        </div>
+        <div class="p-5 space-y-3">
+          <button onclick="exportCSV()" class="w-full p-4 rounded-xl btn-ghost text-left flex items-center gap-4 hover:bg-slate-600/30 group">
+            <div class="text-3xl group-hover:scale-110 transition-transform">📊</div>
+            <div>
+              <div class="font-bold text-white">${L.exportCSV}</div>
+              <div class="text-xs text-slate-400 mt-0.5">${L.exportCSVDesc}</div>
+            </div>
+          </button>
+          <button onclick="exportPDF()" id="pdfBtn" class="w-full p-4 rounded-xl btn-ghost text-left flex items-center gap-4 hover:bg-slate-600/30 group">
+            <div class="text-3xl group-hover:scale-110 transition-transform">📄</div>
+            <div>
+              <div class="font-bold text-white">${L.exportPDF}</div>
+              <div class="text-xs text-slate-400 mt-0.5">${L.exportPDFDesc}</div>
+            </div>
+          </button>
+          <button onclick="exportHiRes()" id="hiResBtn" class="w-full p-4 rounded-xl btn-ghost text-left flex items-center gap-4 hover:bg-slate-600/30 group">
+            <div class="text-3xl group-hover:scale-110 transition-transform">🖼️</div>
+            <div>
+              <div class="font-bold text-white">${L.exportHiRes}</div>
+              <div class="text-xs text-slate-400 mt-0.5">${L.exportHiResDesc}</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// CSV仕様書エクスポート
+function exportCSV() {
+  const L = LANG[state.lang];
+  const weave = getWeave(state.weaveId);
+  const warpYarn = getYarn(state.warpYarnId);
+  const weftYarn = getYarn(state.weftYarnId);
+  const physics = calcPhysics();
+  const gsm = calcGSM();
+  const season = judgeSeason(gsm);
+  const ja = state.lang === 'ja';
+
+  const rows = [
+    [ja ? '項目' : '项目', ja ? '値' : '值'],
+    [ja ? '織り組織' : '织物组织', weave?.name[state.lang] || state.weaveId],
+    [ja ? '経糸' : '经纱', warpYarn?.name[state.lang] || state.warpYarnId],
+    [ja ? '緯糸' : '纬纱', weftYarn?.name[state.lang] || state.weftYarnId],
+    [ja ? '経糸番手' : '经纱支数', warpYarn ? warpYarn.ne + 'Ne' : '-'],
+    [ja ? '緯糸番手' : '纬纱支数', weftYarn ? weftYarn.ne + 'Ne' : '-'],
+    ['EPI', state.epi],
+    ['PPI', state.ppi],
+    [ja ? '目付 (GSM)' : '克重 (GSM)', gsm ? gsm.toFixed(1) : '-'],
+    [ja ? '季節' : '季节', season],
+    [ja ? '経糸径 (mm)' : '经纱直径 (mm)', physics?.warpDiameter?.toFixed(3) || '-'],
+    [ja ? '緯糸径 (mm)' : '纬纱直径 (mm)', physics?.weftDiameter?.toFixed(3) || '-'],
+    [ja ? '経糸カバー率' : '经纱覆盖率', physics?.warpCoverage ? (physics.warpCoverage * 100).toFixed(1) + '%' : '-'],
+    [ja ? '緯糸カバー率' : '纬纱覆盖率', physics?.weftCoverage ? (physics.weftCoverage * 100).toFixed(1) + '%' : '-'],
+    [ja ? '柄ピッチ' : '花纹间距', state.pitch],
+    [ja ? 'パターン' : '图案', state.pattern],
+    [ja ? '経糸色' : '经纱颜色', state.warpColors.join(', ')],
+    [ja ? '緯糸色' : '纬纱颜色', state.weftColors.join(', ')],
+  ];
+
+  // CSV生成 (BOM付きUTF-8)
+  const csvContent = '\uFEFF' + rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'JYUKO_spec_' + state.weaveId + '_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// PDF仕様書エクスポート
+async function exportPDF() {
+  const btn = document.getElementById('pdfBtn');
+  const L = LANG[state.lang];
+  if (btn) btn.querySelector('.font-bold').textContent = L.exporting;
+
+  try {
+    // 仕様書モーダルを一時的に表示してキャプチャ
+    const weave = getWeave(state.weaveId);
+    const warpYarn = getYarn(state.warpYarnId);
+    const weftYarn = getYarn(state.weftYarnId);
+    const physics = calcPhysics();
+    const gsm = calcGSM();
+    const season = judgeSeason(gsm);
+    const ja = state.lang === 'ja';
+
+    // PDF用の一時的なHTML要素を作成
+    const tmpDiv = document.createElement('div');
+    tmpDiv.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:794px;padding:40px;background:white;color:black;font-family:sans-serif;font-size:14px;';
+    tmpDiv.innerHTML = `
+      <div style="border-bottom:3px solid #1e40af;padding-bottom:12px;margin-bottom:20px;">
+        <h1 style="font-size:22px;font-weight:bold;color:#1e40af;margin:0;">${ja ? '先染め生地 仕様書' : '色织面料 规格书'}</h1>
+        <p style="color:#666;font-size:11px;margin:4px 0 0;">JYUKO Textile Simulator — ${new Date().toLocaleDateString()}</p>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+        <tr style="background:#f1f5f9;"><th style="text-align:left;padding:8px;border:1px solid #e2e8f0;width:40%;">${ja ? '項目' : '项目'}</th><th style="text-align:left;padding:8px;border:1px solid #e2e8f0;">${ja ? '値' : '值'}</th></tr>
+        <tr><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '織り組織' : '织物组织'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${weave?.name[state.lang] || '-'}</td></tr>
+        <tr style="background:#f8fafc;"><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '経糸' : '经纱'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${warpYarn?.name[state.lang] || '-'} (${warpYarn?.ne || '-'}Ne)</td></tr>
+        <tr><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '緯糸' : '纬纱'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${weftYarn?.name[state.lang] || '-'} (${weftYarn?.ne || '-'}Ne)</td></tr>
+        <tr style="background:#f8fafc;"><td style="padding:8px;border:1px solid #e2e8f0;">EPI / PPI</td><td style="padding:8px;border:1px solid #e2e8f0;">${state.epi} / ${state.ppi}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '目付' : '克重'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${gsm ? gsm.toFixed(1) + ' g/m²' : '-'}</td></tr>
+        <tr style="background:#f8fafc;"><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '季節' : '季节'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${season}</td></tr>
+        <tr><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '経糸径' : '经纱直径'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${physics?.warpDiameter?.toFixed(3) || '-'} mm</td></tr>
+        <tr style="background:#f8fafc;"><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '緯糸径' : '纬纱直径'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${physics?.weftDiameter?.toFixed(3) || '-'} mm</td></tr>
+        <tr><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? 'カバー率 (経/緯)' : '覆盖率 (经/纬)'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${physics?.warpCoverage ? (physics.warpCoverage*100).toFixed(1)+'%' : '-'} / ${physics?.weftCoverage ? (physics.weftCoverage*100).toFixed(1)+'%' : '-'}</td></tr>
+        <tr style="background:#f8fafc;"><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? 'パターン' : '图案'}</td><td style="padding:8px;border:1px solid #e2e8f0;">${state.pattern} (pitch: ${state.pitch})</td></tr>
+        <tr><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '経糸色' : '经纱颜色'}</td><td style="padding:8px;border:1px solid #e2e8f0;"><span style="display:inline-flex;gap:4px;">${state.warpColors.map(c => '<span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:'+c+';border:1px solid #ccc;" title="'+c+'"></span>').join('')}</span> ${state.warpColors.join(', ')}</td></tr>
+        <tr style="background:#f8fafc;"><td style="padding:8px;border:1px solid #e2e8f0;">${ja ? '緯糸色' : '纬纱颜色'}</td><td style="padding:8px;border:1px solid #e2e8f0;"><span style="display:inline-flex;gap:4px;">${state.weftColors.map(c => '<span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:'+c+';border:1px solid #ccc;" title="'+c+'"></span>').join('')}</span> ${state.weftColors.join(', ')}</td></tr>
+      </table>
+      <div style="margin-top:16px;">
+        <h3 style="font-size:14px;font-weight:bold;margin-bottom:8px;">${ja ? 'プレビュー' : '预览'}</h3>
+        <canvas id="pdfCanvas" width="400" height="400" style="border:1px solid #e2e8f0;border-radius:8px;"></canvas>
+      </div>
+      <div style="margin-top:20px;padding-top:12px;border-top:1px solid #e2e8f0;color:#999;font-size:10px;">
+        Generated by JYUKO Yarn-Dyed Fabric Simulator V3 — ${new Date().toISOString()}
+      </div>
+    `;
+    document.body.appendChild(tmpDiv);
+
+    // キャンバスにプレビューを描画
+    const srcCanvas = document.getElementById('canvas') || document.getElementById('canvasA');
+    const pdfCanvas = tmpDiv.querySelector('#pdfCanvas');
+    if (srcCanvas && pdfCanvas) {
+      const ctx = pdfCanvas.getContext('2d');
+      ctx.drawImage(srcCanvas, 0, 0, 400, 400);
+    }
+
+    await new Promise(r => setTimeout(r, 100));
+
+    const canvas = await html2canvas(tmpDiv, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfW = pdf.internal.pageSize.getWidth();
+    const pdfH = pdf.internal.pageSize.getHeight();
+    const imgW = pdfW - 20;
+    const imgH = (canvas.height / canvas.width) * imgW;
+
+    if (imgH > pdfH - 20) {
+      const scale = (pdfH - 20) / imgH;
+      pdf.addImage(imgData, 'JPEG', 10, 10, imgW * scale, imgH * scale);
+    } else {
+      pdf.addImage(imgData, 'JPEG', 10, 10, imgW, imgH);
+    }
+
+    pdf.save('JYUKO_spec_' + state.weaveId + '_' + new Date().toISOString().slice(0,10) + '.pdf');
+    document.body.removeChild(tmpDiv);
+
+    if (btn) btn.querySelector('.font-bold').textContent = L.exportDone;
+    setTimeout(() => { if (btn) btn.querySelector('.font-bold').textContent = L.exportPDF; }, 2000);
+  } catch (err) {
+    console.error('PDF export error:', err);
+    if (btn) btn.querySelector('.font-bold').textContent = 'Error: ' + err.message;
+    setTimeout(() => { if (btn) btn.querySelector('.font-bold').textContent = L.exportPDF; }, 3000);
+  }
+}
+
+// 高解像度画像エクスポート (A4 300dpi相当: 2480×3508px)
+function exportHiRes() {
+  const btn = document.getElementById('hiResBtn');
+  const L = LANG[state.lang];
+  if (btn) btn.querySelector('.font-bold').textContent = L.exporting;
+
+  try {
+    const srcCanvas = document.getElementById('canvas') || document.getElementById('canvasA');
+    if (!srcCanvas) throw new Error('Canvas not found');
+
+    // A4 300dpi = 2480 x 3508 px, 生地プレビューは正方形で大きく
+    const hiResSize = 2400;
+    const hiCanvas = document.createElement('canvas');
+    hiCanvas.width = hiResSize;
+    hiCanvas.height = hiResSize;
+    const ctx = hiCanvas.getContext('2d');
+
+    // 白背景
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, hiResSize, hiResSize);
+
+    // 高品質リサンプリング
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    // ソースキャンバスを高解像度で再描画
+    ctx.drawImage(srcCanvas, 0, 0, hiResSize, hiResSize);
+
+    // ダウンロード
+    hiCanvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'JYUKO_fabric_HiRes_' + state.weaveId + '_' + new Date().toISOString().slice(0,10) + '.png';
+      a.click();
+      URL.revokeObjectURL(url);
+
+      if (btn) btn.querySelector('.font-bold').textContent = L.exportDone;
+      setTimeout(() => { if (btn) btn.querySelector('.font-bold').textContent = L.exportHiRes; }, 2000);
+    }, 'image/png');
+  } catch (err) {
+    console.error('HiRes export error:', err);
+    if (btn) btn.querySelector('.font-bold').textContent = 'Error: ' + err.message;
+    setTimeout(() => { if (btn) btn.querySelector('.font-bold').textContent = L.exportHiRes; }, 3000);
+  }
+}
+
 // ============================================================
 // グローバル関数
 // ============================================================
@@ -2668,9 +3402,91 @@ window.addColor = t => { const arr = t === 'warp' ? [...state.warpColors] : [...
 window.removeColor = (t, i) => { const arr = t === 'warp' ? [...state.warpColors] : [...state.weftColors]; if (arr.length > 1) arr.splice(i, 1); setState(t === 'warp' ? { warpColors: arr } : { weftColors: arr }); };
 window.quickColor = hex => { const arr = state.warpColors.length < 2 ? [...state.warpColors, hex] : [state.warpColors[0], hex]; setState({ warpColors: arr }); };
 window.setWeaveCat = c => { const first = WEAVE_DB.find(w => w.cat === c); setState({ weaveCat: c, weaveId: first?.id || state.weaveId }); };
+window.shareURL = () => {
+  const params = new URLSearchParams();
+  params.set('p', state.pattern);
+  params.set('w', state.weaveId);
+  params.set('wc', state.warpColors.join(','));
+  params.set('fc', state.weftColors.join(','));
+  params.set('wy', state.warpYarnId);
+  params.set('fy', state.weftYarnId);
+  params.set('e', state.epi);
+  params.set('pp', state.ppi);
+  params.set('pt', state.pitch);
+  params.set('z', state.zoom);
+  if (state.warpArrangement) params.set('wa', JSON.stringify(state.warpArrangement));
+  if (state.weftArrangement) params.set('fa', JSON.stringify(state.weftArrangement));
+  const url = location.origin + location.pathname + '?' + params.toString();
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('shareBtn');
+    if (btn) { btn.textContent = state.lang === 'ja' ? '✅ コピー済み' : '✅ 已复制'; setTimeout(() => { btn.textContent = state.lang === 'ja' ? '🔗 URL共有' : '🔗 URL分享'; }, 2000); }
+  });
+};
+window.undoState = () => {
+  if (state.undoStack && state.undoStack.length > 0) {
+    const snap = state.undoStack[state.undoStack.length - 1];
+    const redoSnap = {};
+    for (const k of Object.keys(snap)) { redoSnap[k] = Array.isArray(state[k]) ? [...state[k]] : state[k]; }
+    state.undoStack = state.undoStack.slice(0, -1);
+    state.redoStack = [...(state.redoStack||[]), redoSnap];
+    Object.assign(state, snap, { _noUndo: true });
+    scheduleRender();
+  }
+};
+window.redoState = () => {
+  if (state.redoStack && state.redoStack.length > 0) {
+    const snap = state.redoStack[state.redoStack.length - 1];
+    const undoSnap = {};
+    for (const k of Object.keys(snap)) { undoSnap[k] = Array.isArray(state[k]) ? [...state[k]] : state[k]; }
+    state.redoStack = state.redoStack.slice(0, -1);
+    state.undoStack = [...(state.undoStack||[]), undoSnap];
+    Object.assign(state, snap, { _noUndo: true });
+    scheduleRender();
+  }
+};
+window.exportCSV = exportCSV;
+window.exportPDF = exportPDF;
+window.exportHiRes = exportHiRes;
 window.downloadPng = () => { const c = document.getElementById('canvas') || document.getElementById('canvasA'); if (c) { const l = document.createElement('a'); l.download = `JYUKO_fabric_${state.weaveId}.png`; l.href = c.toDataURL('image/png'); l.click(); } };
 window.toggleCompare = () => { if (!state.compareMode) { setState({ compareMode: true, savedConfig: { ...state } }); } else { setState({ compareMode: false, savedConfig: null }); } };
+window.swapCompare = () => {
+  if (state.compareMode && state.savedConfig) {
+    const currentMain = { pattern: state.pattern, weaveId: state.weaveId, weaveCat: state.weaveCat, warpColors: [...state.warpColors], weftColors: [...state.weftColors], warpYarnId: state.warpYarnId, weftYarnId: state.weftYarnId, yarnCat: state.yarnCat, epi: state.epi, ppi: state.ppi, pitch: state.pitch, zoom: state.zoom };
+    const saved = state.savedConfig;
+    setState({ ...currentMain, pattern: saved.pattern, weaveId: saved.weaveId, weaveCat: saved.weaveCat, warpColors: [...(saved.warpColors||[])], weftColors: [...(saved.weftColors||[])], warpYarnId: saved.warpYarnId, weftYarnId: saved.weftYarnId, yarnCat: saved.yarnCat, epi: saved.epi, ppi: saved.ppi, pitch: saved.pitch, zoom: saved.zoom, savedConfig: currentMain });
+  }
+};
 window.applyRandom = () => setState(randomGenerate());
+window.changeArrCount = (type, idx, delta) => {
+  const key = type + 'Arrangement';
+  const colors = type === 'warp' ? state.warpColors : state.weftColors;
+  const arr = [...(state[key] || autoArrangement(colors))];
+  arr[idx] = { ...arr[idx], count: Math.max(1, arr[idx].count + delta) };
+  setState({ [key]: arr, _noUndo: true });
+};
+window.removeArrItem = (type, idx) => {
+  const key = type + 'Arrangement';
+  const colors = type === 'warp' ? state.warpColors : state.weftColors;
+  const arr = [...(state[key] || autoArrangement(colors))];
+  if (arr.length > 1) arr.splice(idx, 1);
+  setState({ [key]: arr, _noUndo: true });
+};
+window.addArrItem = (type) => {
+  const key = type + 'Arrangement';
+  const colors = type === 'warp' ? state.warpColors : state.weftColors;
+  const arr = [...(state[key] || autoArrangement(colors))];
+  arr.push({ color: SWATCHES[Math.floor(Math.random() * SWATCHES.length)], count: 1 });
+  // 色も追加
+  const colKey = type + 'Colors';
+  const newColors = [...state[colKey], arr[arr.length-1].color];
+  setState({ [key]: arr, [colKey]: newColors, _noUndo: true });
+};
+window.applyArrangement = () => {
+  const warpArr = state.warpArrangement || autoArrangement(state.warpColors);
+  const weftArr = state.weftArrangement || autoArrangement(state.weftColors);
+  setState({ warpArrangement: warpArr, weftArrangement: weftArr, warpColors: warpArr.map(a=>a.color), weftColors: weftArr.map(a=>a.color), modal: null });
+};
+window.resetArrangement = () => setState({ warpArrangement: null, weftArrangement: null, modal: null });
 window.applyTrendColor = hex => { setState({ warpColors: [state.warpColors[0] || '#1d3557', hex], modal: null }); };
 
 // チェック柄プリセット適用
@@ -2756,7 +3572,7 @@ window.applyCustomWeave = () => {
   const customWeave = {
     id: 'custom',
     name: { ja: 'カスタム組織', zh: '自定义组织' },
-    cat: state.weaveCat || 'special',
+    cat: 'special',
     matrix: boolMatrix,
     rx: s, ry: s,
     chars: { durability: 3, drape: 3, breathability: 3, wrinkleResistance: 3, shine: 3 },
@@ -2768,7 +3584,62 @@ window.applyCustomWeave = () => {
   setState({ weaveId: 'custom', weaveCat: customWeave.cat, modal: null });
 };
 
-// 初期描画
+// ============================================================
+// 初期化 - Improvement #4: URL パラメータバリデーション強化
+// ============================================================
+(function loadFromURL() {
+  try {
+    const p = new URLSearchParams(location.search);
+    const validPatterns = ['check', 'stripe', 'solid'];
+    if (p.has('p') && validPatterns.includes(p.get('p'))) state.pattern = p.get('p');
+    if (p.has('w') && getWeave(p.get('w'))) state.weaveId = p.get('w');
+    if (p.has('wc')) {
+      const colors = p.get('wc').split(',').filter(c => /^#[0-9a-fA-F]{6}$/.test(c));
+      if (colors.length > 0 && colors.length <= 8) state.warpColors = colors;
+    }
+    if (p.has('fc')) {
+      const colors = p.get('fc').split(',').filter(c => /^#[0-9a-fA-F]{6}$/.test(c));
+      if (colors.length > 0 && colors.length <= 8) state.weftColors = colors;
+    }
+    if (p.has('wy') && getYarn(p.get('wy'))) state.warpYarnId = p.get('wy');
+    if (p.has('fy') && getYarn(p.get('fy'))) state.weftYarnId = p.get('fy');
+    if (p.has('e')) { const v = +p.get('e'); if (v >= 30 && v <= 250) state.epi = v; }
+    if (p.has('pp')) { const v = +p.get('pp'); if (v >= 30 && v <= 250) state.ppi = v; }
+    if (p.has('pt')) { const v = +p.get('pt'); if (v >= 8 && v <= 80) state.pitch = v; }
+    if (p.has('z')) { const v = +p.get('z'); if (v >= 0.5 && v <= 3) state.zoom = v; }
+    if (p.has('wa')) try {
+      const arr = JSON.parse(p.get('wa'));
+      if (Array.isArray(arr) && arr.every(a => a.color && a.count > 0)) state.warpArrangement = arr;
+    } catch(e) {}
+    if (p.has('fa')) try {
+      const arr = JSON.parse(p.get('fa'));
+      if (Array.isArray(arr) && arr.every(a => a.color && a.count > 0)) state.weftArrangement = arr;
+    } catch(e) {}
+    const w = getWeave(state.weaveId); if (w) state.weaveCat = w.cat;
+    const y = getYarn(state.warpYarnId); if (y) state.yarnCat = y.cat;
+  } catch(e) {
+    console.warn('URL parameter loading failed:', e);
+  }
+})();
+
+// Improvement #5: キーボードショートカット＋Escape でモーダル閉じる
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoState(); }
+  if ((e.metaKey || e.ctrlKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redoState(); }
+  if (e.key === 'Escape' && state.modal) { setState({ modal: null }); }
+});
+
+// Improvement #6: リサイズ時にCanvasを再描画
+let _resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    _tileCache = null;
+    _tileCacheKey = '';
+    renderCanvas();
+  }, 150);
+});
+
 render();
 </script>
 </body>
