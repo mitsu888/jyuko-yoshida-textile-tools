@@ -863,6 +863,465 @@ const FABRIC_NAME_DB = [
   { id: 'wool_poly_suiting', name: { ja: 'ウールポリスーティング', zh: '毛涤西装面料' },
     fibers: ['wool','polyester'], weaves: ['twill_2_2','plain'], neRange: [20, 50], gsmRange: [180, 320], epiRange: [60, 130],
     desc: { ja: 'ウールとポリの混紡スーツ地。耐久性と着心地の両立', zh: '毛涤混纺西装面料，耐用与舒适兼具' }, isBlend: true },
+
+  // ═══════ 追加: 綿織物（産地・ブランド系） ═══════
+  { id: 'swiss_voile', name: { ja: 'スイスボイル', zh: '瑞士巴里纱' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [60,120], gsmRange: [40,100], epiRange: [60,100],
+    desc: { ja: 'スイス製の高級ボイル。細かいドットや刺繍が特徴', zh: '瑞士产高级巴里纱，有细点或绣花' } },
+  { id: 'sea_island_cotton', name: { ja: '海島綿ブロード', zh: '海岛棉府绸' },
+    fibers: ['cotton'], weaves: ['plain','broadcloth'], neRange: [80,200], gsmRange: [60,120], epiRange: [120,200],
+    desc: { ja: '最高級コットン。シルクのような光沢', zh: '最高级棉花，有丝绸般光泽' } },
+  { id: 'supima_twill', name: { ja: 'スーピマツイル', zh: '苏比马斜纹' },
+    fibers: ['cotton'], weaves: ['twill_2_1','twill_2_2'], neRange: [40,100], gsmRange: [100,200], epiRange: [80,150],
+    desc: { ja: 'スーピマコットンの綾織。柔らかく光沢がある', zh: '苏比马棉斜纹，柔软有光泽' } },
+  { id: 'giza_cotton_plain', name: { ja: 'ギザコットン平織', zh: '吉扎棉平纹' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [60,140], gsmRange: [60,130], epiRange: [100,180],
+    desc: { ja: 'エジプト綿の高級平織。しなやかな風合い', zh: '埃及棉高级平纹，手感柔顺' } },
+  { id: 'typewriter_cloth', name: { ja: 'タイプライター', zh: '打字机布' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [60,120], gsmRange: [50,100], epiRange: [110,180],
+    desc: { ja: '超高密度の薄手平織。パリッとした張り感', zh: '超高密度薄平纹，挺括有张力' } },
+  { id: 'weather_cloth', name: { ja: 'ウェザー', zh: '细密斜纹' },
+    fibers: ['cotton'], weaves: ['twill_2_1'], neRange: [40,80], gsmRange: [120,200], epiRange: [100,160],
+    desc: { ja: '高密度綾織。耐水性があり春夏アウターに', zh: '高密度斜纹，有防水性，春夏外套用' } },
+  { id: 'pique_fabric', name: { ja: 'ピケ', zh: '提花网眼布' },
+    fibers: ['cotton'], weaves: ['pique','plain'], neRange: [20,50], gsmRange: [150,280], epiRange: [60,120],
+    desc: { ja: '表面に凹凸のある織物。ポロシャツの定番素材', zh: '表面有凹凸的织物，Polo衫经典面料' } },
+  { id: 'waffle_cloth', name: { ja: 'ワッフル', zh: '华夫格' },
+    fibers: ['cotton'], weaves: ['waffle','plain'], neRange: [10,30], gsmRange: [180,350], epiRange: [40,80],
+    desc: { ja: '格子状の凹凸がある織物。タオルやカットソーに', zh: '有格子状凹凸的织物，用于毛巾和针织' } },
+  { id: 'dumask_cotton', name: { ja: '綿ダマスク', zh: '棉缎纹' },
+    fibers: ['cotton'], weaves: ['satin_5','plain'], neRange: [40,80], gsmRange: [150,300], epiRange: [80,160],
+    desc: { ja: 'ジャカードで模様を織り出した高級テーブルクロス向け', zh: '提花织造纹样的高级桌布面料' } },
+
+  // ═══════ 追加: 麻織物 ═══════
+  { id: 'irish_linen', name: { ja: 'アイリッシュリネン', zh: '爱尔兰亚麻' },
+    fibers: ['linen'], weaves: ['plain'], neRange: [25,60], gsmRange: [120,250], epiRange: [50,100],
+    desc: { ja: 'アイルランド産の高品質リネン。ハリとコシがある', zh: '爱尔兰产高品质亚麻，挺括有弹性' } },
+  { id: 'french_linen', name: { ja: 'フレンチリネン', zh: '法国亚麻' },
+    fibers: ['linen'], weaves: ['plain','twill_2_1'], neRange: [20,50], gsmRange: [130,280], epiRange: [40,90],
+    desc: { ja: 'フランス産リネン。柔らかく落ち感がある', zh: '法国产亚麻，柔软有垂感' } },
+  { id: 'ramie_plain', name: { ja: 'ラミー平織', zh: '苎麻平纹' },
+    fibers: ['ramie'], weaves: ['plain'], neRange: [30,80], gsmRange: [80,180], epiRange: [50,110],
+    desc: { ja: 'ラミー（苧麻）の平織。涼感とシャリ感が特徴', zh: '苎麻平纹，凉感和爽滑感为特征' } },
+  { id: 'hemp_canvas', name: { ja: 'ヘンプキャンバス', zh: '大麻帆布' },
+    fibers: ['linen'], weaves: ['plain','canvas'], neRange: [5,15], gsmRange: [300,600], epiRange: [30,60],
+    desc: { ja: 'ヘンプの厚地平織。バッグや帽子に', zh: '大麻厚平纹，用于包和帽子' } },
+  { id: 'linen_gauze', name: { ja: 'リネンガーゼ', zh: '亚麻薄纱' },
+    fibers: ['linen'], weaves: ['plain'], neRange: [40,100], gsmRange: [40,100], epiRange: [30,70],
+    desc: { ja: 'リネンの薄手ガーゼ。軽く通気性抜群', zh: '亚麻薄纱，轻盈透气' } },
+
+  // ═══════ 追加: 毛織物 ═══════
+  { id: 'melton', name: { ja: 'メルトン', zh: '麦尔登呢' },
+    fibers: ['wool'], weaves: ['twill_2_2','plain'], neRange: [5,16], gsmRange: [400,700], epiRange: [40,80],
+    desc: { ja: '縮絨して織り目を消した厚地。ピーコート等に', zh: '缩绒后织纹消失的厚面料，用于海军大衣' } },
+  { id: 'doeskin', name: { ja: 'ドスキン', zh: '鹿皮呢' },
+    fibers: ['wool'], weaves: ['satin_5','twill_2_2'], neRange: [20,50], gsmRange: [200,350], epiRange: [60,120],
+    desc: { ja: '片面起毛のなめらかな朱子織。フォーマル向け', zh: '单面起毛的光滑缎纹，正式场合用' } },
+  { id: 'saxony', name: { ja: 'サキソニー', zh: '萨克森呢' },
+    fibers: ['wool'], weaves: ['twill_2_2'], neRange: [20,40], gsmRange: [200,350], epiRange: [50,100],
+    desc: { ja: 'ソフトで滑らかなウール綾織。スーツやコートに', zh: '柔软光滑的毛斜纹，西装和大衣用' } },
+  { id: 'sharkskin_wool', name: { ja: 'シャークスキン', zh: '鲨鱼皮呢' },
+    fibers: ['wool'], weaves: ['twill_2_2','twill_2_1'], neRange: [30,60], gsmRange: [180,300], epiRange: [60,120],
+    desc: { ja: '鳥目模様の綾織。ビジネススーツに人気', zh: '鸟眼纹斜纹，商务西装流行面料' } },
+  { id: 'bird_eye_wool', name: { ja: 'バーズアイ', zh: '鸟眼呢' },
+    fibers: ['wool'], weaves: ['twill_2_2','plain'], neRange: [30,60], gsmRange: [180,300], epiRange: [60,120],
+    desc: { ja: '小さな菱形ドット模様のスーツ地', zh: '小菱形点状纹样的西装面料' } },
+  { id: 'loden', name: { ja: 'ローデン', zh: '罗登呢' },
+    fibers: ['wool'], weaves: ['twill_2_1','plain'], neRange: [6,16], gsmRange: [400,650], epiRange: [40,80],
+    desc: { ja: 'チロル地方発祥の防水ウール。コートに', zh: '蒂罗尔地区起源的防水毛料，大衣用' } },
+  { id: 'homespun', name: { ja: 'ホームスパン', zh: '家纺呢' },
+    fibers: ['wool'], weaves: ['plain','twill_2_1'], neRange: [5,14], gsmRange: [250,500], epiRange: [30,70],
+    desc: { ja: '手紡ぎ風の粗い風合い。ツイードに近い', zh: '手纺风粗糙质感，接近花呢' } },
+  { id: 'cavalry_twill', name: { ja: 'カバリーツイル', zh: '骑兵斜纹' },
+    fibers: ['wool','cotton'], weaves: ['twill_2_2','twill_2_1'], neRange: [16,40], gsmRange: [200,400], epiRange: [50,110],
+    desc: { ja: '二重斜めの綾線が特徴。パンツ・スカートに', zh: '双斜纹线为特征，裤子和裙子用' } },
+  { id: 'covert_cloth', name: { ja: 'カバートクロス', zh: '隐条呢' },
+    fibers: ['wool'], weaves: ['twill_2_2'], neRange: [16,36], gsmRange: [250,400], epiRange: [50,100],
+    desc: { ja: '杢糸を使った綾織。スポーツコートに', zh: '混色纱斜纹，运动外套用' } },
+  { id: 'tropical_wool', name: { ja: 'トロピカル', zh: '热带呢' },
+    fibers: ['wool'], weaves: ['plain'], neRange: [40,80], gsmRange: [120,220], epiRange: [60,120],
+    desc: { ja: '薄手で通気性のある夏用ウール', zh: '薄透气的夏季毛料' } },
+  { id: 'fresco_wool', name: { ja: 'フレスコ', zh: '佛莱斯科呢' },
+    fibers: ['wool'], weaves: ['plain'], neRange: [40,70], gsmRange: [180,270], epiRange: [50,100],
+    desc: { ja: '強撚糸平織の夏用スーツ地。シャリ感が特徴', zh: '强捻纱平纹夏季西装面料，爽滑为特征' }, twist: ['warp:high','weft:high'] },
+  { id: 'mohair_suiting', name: { ja: 'モヘアスーツ地', zh: '马海毛西装面料' },
+    fibers: ['wool'], weaves: ['plain','twill_2_1'], neRange: [30,60], gsmRange: [180,300], epiRange: [50,110],
+    desc: { ja: 'モヘア混の光沢あるスーツ地', zh: '马海毛混纺有光泽的西装面料' } },
+  { id: 'bouclé_fabric', name: { ja: 'ブークレ', zh: '圈圈呢' },
+    fibers: ['wool','cotton'], weaves: ['plain','twill_2_1'], neRange: [4,16], gsmRange: [200,450], epiRange: [30,70],
+    desc: { ja: 'ループ状の凹凸がある織物。ジャケットに', zh: '有圈状凹凸的织物，夹克用' } },
+  { id: 'vicuna_plain', name: { ja: 'ビキューナ', zh: '骆马呢' },
+    fibers: ['wool','cashmere'], weaves: ['plain','twill_2_1'], neRange: [40,80], gsmRange: [150,280], epiRange: [60,120],
+    desc: { ja: '世界最高級の獣毛素材。極めて柔らかい', zh: '世界最高级的动物毛面料，极其柔软' } },
+  { id: 'angora_blend', name: { ja: 'アンゴラブレンド', zh: '安哥拉混纺' },
+    fibers: ['wool'], weaves: ['plain','twill_2_1'], neRange: [10,30], gsmRange: [150,300], epiRange: [40,80],
+    desc: { ja: 'アンゴラ兎毛混の軽く柔らかい生地', zh: '安哥拉兔毛混纺轻柔面料' }, isBlend: true },
+  { id: 'houndstooth', name: { ja: '千鳥格子', zh: '犬牙格' },
+    fibers: ['wool','cotton'], weaves: ['twill_2_2'], neRange: [20,50], gsmRange: [180,350], epiRange: [50,110],
+    desc: { ja: '千鳥模様の綾織。クラシックな柄', zh: '犬牙纹斜纹，经典花型' } },
+  { id: 'glen_check', name: { ja: 'グレンチェック', zh: '格伦格' },
+    fibers: ['wool'], weaves: ['twill_2_2','plain'], neRange: [20,50], gsmRange: [180,320], epiRange: [50,110],
+    desc: { ja: 'グレナカートチェックのスーツ地', zh: '格伦格纹西装面料' } },
+  { id: 'windowpane_check', name: { ja: 'ウインドウペーン', zh: '窗格纹' },
+    fibers: ['wool'], weaves: ['plain','twill_2_2'], neRange: [20,50], gsmRange: [180,300], epiRange: [50,110],
+    desc: { ja: '大きな格子の窓枠模様', zh: '大格子窗框纹样' } },
+  { id: 'pinstripe', name: { ja: 'ピンストライプ', zh: '细条纹' },
+    fibers: ['wool','polyester'], weaves: ['plain','twill_2_2'], neRange: [30,60], gsmRange: [180,300], epiRange: [60,120],
+    desc: { ja: '極細の縦縞。ビジネススーツの定番', zh: '极细竖条纹，商务西装经典' } },
+  { id: 'chalk_stripe', name: { ja: 'チョークストライプ', zh: '粉笔条纹' },
+    fibers: ['wool'], weaves: ['twill_2_2','plain'], neRange: [20,50], gsmRange: [200,350], epiRange: [50,100],
+    desc: { ja: 'やや太めの白縞。英国調スーツに', zh: '稍粗的白色条纹，英式西装用' } },
+
+  // ═══════ 追加: 絹織物 ═══════
+  { id: 'habutae', name: { ja: '羽二重', zh: '双绉' },
+    fibers: ['silk'], weaves: ['plain'], neRange: [60,200], gsmRange: [20,80], epiRange: [80,200],
+    desc: { ja: '経を二本引き揃えた薄手絹平織。和装の裏地に', zh: '经纱两根并列的薄丝平纹，和装衬里' } },
+  { id: 'chirimen', name: { ja: 'ちりめん', zh: '绉绸' },
+    fibers: ['silk'], weaves: ['plain'], neRange: [40,120], gsmRange: [60,160], epiRange: [50,120],
+    desc: { ja: '強撚糸で表面にシボを出した絹織物。和装の定番', zh: '强捻纱织造表面有褶的丝织物' }, twist: ['weft:crepe'] },
+  { id: 'tsumugi', name: { ja: '紬', zh: '紬绸' },
+    fibers: ['silk'], weaves: ['plain'], neRange: [20,60], gsmRange: [80,200], epiRange: [40,90],
+    desc: { ja: '紬糸を使った節のある絹織物。カジュアル和装', zh: '用紬丝织造有节的丝织物，休闲和装' } },
+  { id: 'rinzu', name: { ja: '綸子', zh: '绫子' },
+    fibers: ['silk'], weaves: ['satin_5','plain'], neRange: [40,120], gsmRange: [60,150], epiRange: [80,160],
+    desc: { ja: '朱子織で地紋を織り出した光沢ある絹織物', zh: '缎纹织造底纹的有光泽丝织物' } },
+  { id: 'nishijin_brocade', name: { ja: '西陣織', zh: '西阵织' },
+    fibers: ['silk'], weaves: ['jacquard','satin_5'], neRange: [30,100], gsmRange: [100,400], epiRange: [80,200],
+    desc: { ja: '京都西陣の高級ジャカード織。帯や装飾品に', zh: '京都西阵高级提花织物，用于腰带和装饰品' } },
+  { id: 'dupioni_silk', name: { ja: 'デュピオニ', zh: '双宫绸' },
+    fibers: ['silk'], weaves: ['plain'], neRange: [20,60], gsmRange: [80,180], epiRange: [40,100],
+    desc: { ja: '節のある野趣ある絹平織。フォーマルドレスに', zh: '有节的野趣丝平纹，正式礼服用' } },
+  { id: 'silk_chiffon', name: { ja: 'シルクシフォン', zh: '丝雪纺' },
+    fibers: ['silk'], weaves: ['plain'], neRange: [80,200], gsmRange: [15,50], epiRange: [40,100],
+    desc: { ja: '極薄手で透け感のある絹平織', zh: '极薄有透感的丝平纹' } },
+  { id: 'silk_organza', name: { ja: 'シルクオーガンジー', zh: '丝绸欧根纱' },
+    fibers: ['silk'], weaves: ['plain'], neRange: [60,160], gsmRange: [20,60], epiRange: [60,140],
+    desc: { ja: '張りのある透明感ある極薄絹織物', zh: '有挺括感的透明极薄丝织物' } },
+
+  // ═══════ 追加: ポリエステル・ナイロン系 ═══════
+  { id: 'taslan_nylon', name: { ja: 'タスランナイロン', zh: '塔丝隆尼龙' },
+    fibers: ['nylon'], weaves: ['plain','twill_2_1'], neRange: [20,60], gsmRange: [80,200], epiRange: [50,120],
+    desc: { ja: 'タスラン加工の嵩高ナイロン。スポーツウェアに', zh: '塔丝隆加工的蓬松尼龙，运动服用' } },
+  { id: 'ripstop_nylon', name: { ja: 'リップストップ', zh: '防撕裂尼龙' },
+    fibers: ['nylon','polyester'], weaves: ['plain'], neRange: [30,80], gsmRange: [40,150], epiRange: [50,120],
+    desc: { ja: '格子状の補強糸入り。軽量アウトドア向け', zh: '有格子状加强纱的轻量户外面料' } },
+  { id: 'micro_fiber', name: { ja: 'マイクロファイバー', zh: '超细纤维' },
+    fibers: ['polyester','nylon'], weaves: ['plain','twill_2_1'], neRange: [40,120], gsmRange: [80,200], epiRange: [80,180],
+    desc: { ja: '極細繊維の高密度織物。ピーチスキンタッチ', zh: '极细纤维高密度织物，桃皮触感' } },
+  { id: 'poly_chiffon', name: { ja: 'ポリシフォン', zh: '涤丝雪纺' },
+    fibers: ['polyester'], weaves: ['plain'], neRange: [60,150], gsmRange: [30,80], epiRange: [40,100],
+    desc: { ja: 'ポリエステルのシフォン。安価で耐久性がある', zh: '涤纶雪纺，价格实惠耐用' } },
+  { id: 'polyester_taffeta', name: { ja: 'ポリタフタ', zh: '涤塔夫' },
+    fibers: ['polyester'], weaves: ['plain'], neRange: [40,100], gsmRange: [40,120], epiRange: [60,140],
+    desc: { ja: 'ポリエステルのタフタ。裏地やバッグに', zh: '涤纶塔夫绸，衬里和包用' } },
+  { id: 'cordura', name: { ja: 'コーデュラ', zh: '考杜拉' },
+    fibers: ['nylon'], weaves: ['plain','twill_2_1'], neRange: [10,30], gsmRange: [200,500], epiRange: [40,90],
+    desc: { ja: '高強度ナイロン織物。バッグやミリタリーに', zh: '高强度尼龙织物，包和军用' } },
+
+  // ═══════ 追加: レーヨン・再生繊維 ═══════
+  { id: 'rayon_challis', name: { ja: 'レーヨンシャリス', zh: '人棉绉' },
+    fibers: ['rayon'], weaves: ['plain'], neRange: [20,50], gsmRange: [80,160], epiRange: [40,90],
+    desc: { ja: '柔らかく落ち感のあるレーヨン平織。ブラウスに', zh: '柔软有垂感的人棉平纹，女衬衫用' } },
+  { id: 'cupro_fabric', name: { ja: 'キュプラ', zh: '铜氨纤维' },
+    fibers: ['rayon'], weaves: ['plain','satin_5'], neRange: [40,100], gsmRange: [50,120], epiRange: [60,140],
+    desc: { ja: 'コットンリンターから作った再生繊維。高級裏地に', zh: '棉短绒再生纤维，高级衬里用' } },
+  { id: 'modal_jersey', name: { ja: 'モダールジャージー', zh: '莫代尔针织' },
+    fibers: ['rayon'], weaves: ['plain'], neRange: [20,50], gsmRange: [120,220], epiRange: [40,80],
+    desc: { ja: 'モダール繊維。柔らかくドレープ性が高い', zh: '莫代尔纤维，柔软垂感好' } },
+
+  // ═══════ 追加: 混紡ブレンド ═══════
+  { id: 'tc_broadcloth', name: { ja: 'T/Cブロード', zh: '涤棉府绸' },
+    fibers: ['polyester','cotton'], weaves: ['plain','broadcloth'], neRange: [30,60], gsmRange: [80,160], epiRange: [80,150],
+    desc: { ja: 'ポリエステル綿混の平織。ユニフォームやシャツに', zh: '涤棉混纺平纹，制服和衬衫用' }, isBlend: true },
+  { id: 'tc_twill', name: { ja: 'T/Cツイル', zh: '涤棉斜纹' },
+    fibers: ['polyester','cotton'], weaves: ['twill_2_1','twill_2_2'], neRange: [16,40], gsmRange: [150,300], epiRange: [60,120],
+    desc: { ja: 'ポリ綿混の綾織。ワークウェアの定番', zh: '涤棉斜纹，工作服经典面料' }, isBlend: true },
+  { id: 'wool_silk_blend', name: { ja: 'ウールシルクブレンド', zh: '毛丝混纺' },
+    fibers: ['wool','silk'], weaves: ['plain','twill_2_2'], neRange: [30,60], gsmRange: [150,280], epiRange: [50,110],
+    desc: { ja: 'ウールとシルクの混紡。光沢と保温性', zh: '毛丝混纺，光泽与保暖' }, isBlend: true },
+  { id: 'cotton_cashmere', name: { ja: 'コットンカシミヤ', zh: '棉羊绒' },
+    fibers: ['cotton','cashmere'], weaves: ['plain','twill_2_1'], neRange: [20,50], gsmRange: [120,250], epiRange: [50,100],
+    desc: { ja: '綿とカシミヤの混紡。肌触りが良い', zh: '棉羊绒混纺，触感好' }, isBlend: true },
+  { id: 'linen_cotton_blend', name: { ja: '綿麻シャンブレー', zh: '棉麻色织' },
+    fibers: ['cotton','linen'], weaves: ['plain'], neRange: [16,40], gsmRange: [100,220], epiRange: [50,100],
+    desc: { ja: '綿麻混の玉虫色効果がある平織', zh: '棉麻混纺有闪色效果的平纹' }, isBlend: true },
+  { id: 'poly_linen', name: { ja: 'ポリリネン', zh: '涤麻' },
+    fibers: ['polyester','linen'], weaves: ['plain'], neRange: [16,40], gsmRange: [100,220], epiRange: [50,100],
+    desc: { ja: 'ポリとリネンの混紡。麻の風合い＋イージーケア', zh: '涤麻混纺，麻的质感加免烫' }, isBlend: true },
+  { id: 'tencel_cotton', name: { ja: 'テンセルコットン', zh: '天丝棉' },
+    fibers: ['lyocell','cotton'], weaves: ['plain','twill_2_1'], neRange: [20,50], gsmRange: [100,220], epiRange: [50,120],
+    desc: { ja: 'テンセルと綿の混紡。柔らかく吸湿性が高い', zh: '天丝棉混纺，柔软吸湿性好' }, isBlend: true },
+
+  // ═══════ 追加: ストレッチ系 ═══════
+  { id: 'stretch_twill', name: { ja: 'ストレッチツイル', zh: '弹力斜纹' },
+    fibers: ['cotton','polyester'], weaves: ['twill_2_1','twill_2_2'], neRange: [16,40], gsmRange: [180,320], epiRange: [60,120],
+    desc: { ja: 'ポリウレタン入りの伸縮綾織。パンツに最適', zh: '含氨纶的弹力斜纹，裤子最佳' }, isBlend: true },
+  { id: 'stretch_poplin', name: { ja: 'ストレッチポプリン', zh: '弹力府绸' },
+    fibers: ['cotton','polyester'], weaves: ['plain'], neRange: [30,60], gsmRange: [100,180], epiRange: [70,130],
+    desc: { ja: 'ストレッチ性のある平織。シャツやブラウスに', zh: '有弹力的平纹，衬衫和女衬衫用' }, isBlend: true },
+  { id: 'power_stretch', name: { ja: 'パワーストレッチ', zh: '强力弹力' },
+    fibers: ['nylon','polyester'], weaves: ['plain'], neRange: [20,60], gsmRange: [150,300], epiRange: [60,140],
+    desc: { ja: '高伸縮性のスポーツ向け織物', zh: '高弹力运动面料' }, isBlend: true },
+
+  // ═══════ 追加: 加工名称系 ═══════
+  { id: 'bio_wash', name: { ja: 'バイオウォッシュ', zh: '生物水洗' },
+    fibers: ['cotton','linen'], weaves: ['plain','twill_2_1'], neRange: [10,40], gsmRange: [100,280], epiRange: [40,100],
+    desc: { ja: '酵素処理で柔らかくした生地。ヴィンテージ風合い', zh: '酶处理柔软的面料，复古质感' } },
+  { id: 'sanded_fabric', name: { ja: 'サンド加工', zh: '磨毛' },
+    fibers: ['cotton','polyester'], weaves: ['twill_2_1','plain'], neRange: [16,40], gsmRange: [120,280], epiRange: [50,110],
+    desc: { ja: '起毛加工でピーチスキンタッチに', zh: '起毛加工达到桃皮触感' } },
+  { id: 'mercerized_fabric', name: { ja: 'シルケット加工', zh: '丝光处理' },
+    fibers: ['cotton'], weaves: ['plain','twill_2_1'], neRange: [30,80], gsmRange: [80,200], epiRange: [60,140],
+    desc: { ja: 'シルケット処理で光沢と強度向上', zh: '丝光处理提升光泽和强度' } },
+  { id: 'wrinkle_free', name: { ja: '形態安定加工', zh: '免烫处理' },
+    fibers: ['cotton','polyester'], weaves: ['plain','broadcloth'], neRange: [30,60], gsmRange: [80,160], epiRange: [70,140],
+    desc: { ja: 'ノーアイロンのシャツ地', zh: '免烫衬衫面料' } },
+
+  // ═══════ 追加: テンセル系 ═══════
+  { id: 'tencel_twill', name: { ja: 'テンセルツイル', zh: '天丝斜纹' },
+    fibers: ['lyocell'], weaves: ['twill_2_1','twill_2_2'], neRange: [20,60], gsmRange: [120,250], epiRange: [60,130],
+    desc: { ja: 'テンセルの綾織。シルクのような光沢と落ち感', zh: '天丝斜纹，有丝绸般光泽和垂感' } },
+  { id: 'tencel_plain', name: { ja: 'テンセル平織', zh: '天丝平纹' },
+    fibers: ['lyocell'], weaves: ['plain'], neRange: [20,60], gsmRange: [80,180], epiRange: [50,120],
+    desc: { ja: 'テンセルの平織。ドレープ性と光沢', zh: '天丝平纹，有悬垂性和光泽' } },
+  { id: 'tencel_denim', name: { ja: 'テンセルデニム', zh: '天丝牛仔' },
+    fibers: ['lyocell','cotton'], weaves: ['denim'], neRange: [10,24], gsmRange: [180,300], epiRange: [60,100],
+    desc: { ja: 'テンセル混のソフトデニム', zh: '天丝混纺柔软牛仔布' }, isBlend: true },
+
+  // ═══════ 追加: 日本産地系 ═══════
+  { id: 'banshu_ori', name: { ja: '播州織', zh: '播州织' },
+    fibers: ['cotton'], weaves: ['plain','twill_2_1'], neRange: [20,60], gsmRange: [80,200], epiRange: [50,120],
+    desc: { ja: '兵庫県西脇市の先染め綿織物', zh: '�的�的兵库县西�的先染棉织物' } },
+  { id: 'enshu_ori', name: { ja: '遠州織', zh: '远州织' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [20,50], gsmRange: [80,180], epiRange: [50,100],
+    desc: { ja: '静岡県浜松の綿織物。コーデュロイでも有名', zh: '静冈县浜松的棉织物' } },
+  { id: 'imabari_towel', name: { ja: '今治タオル', zh: '今治毛巾' },
+    fibers: ['cotton'], weaves: ['terry','plain'], neRange: [8,20], gsmRange: [200,600], epiRange: [30,70],
+    desc: { ja: '愛媛県今治市の高品質タオル。吸水性抜群', zh: '爱媛县今治市高品质毛巾，吸水性极好' } },
+  { id: 'kurume_kasuri', name: { ja: '久留米絣', zh: '久留米絣' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [16,30], gsmRange: [120,220], epiRange: [40,80],
+    desc: { ja: '福岡県久留米の伝統絣織物', zh: '福冈县久留米的传统絣织物' } },
+  { id: 'ojiya_chijimi', name: { ja: '小千谷縮', zh: '小千谷缩' },
+    fibers: ['linen'], weaves: ['plain'], neRange: [20,50], gsmRange: [80,160], epiRange: [40,80],
+    desc: { ja: '新潟県の麻の縮織物。シボが涼しい夏向き', zh: '新泻县麻缩织物，褶皱凉爽适合夏季' }, twist: ['weft:high'] },
+
+  // ═══════ 追加: 世界産地系 ═══════
+  { id: 'harris_tweed', name: { ja: 'ハリスツイード', zh: '哈里斯花呢' },
+    fibers: ['wool'], weaves: ['twill_2_2','plain'], neRange: [4,12], gsmRange: [350,550], epiRange: [30,60],
+    desc: { ja: 'スコットランド産の手織りツイード', zh: '苏格兰产手工花呢' } },
+  { id: 'donegal_tweed', name: { ja: 'ドネガルツイード', zh: '多尼戈尔花呢' },
+    fibers: ['wool'], weaves: ['plain','twill_2_1'], neRange: [4,14], gsmRange: [250,450], epiRange: [30,60],
+    desc: { ja: 'アイルランド産のネップ入りツイード', zh: '爱尔兰产有竹节的花呢' } },
+  { id: 'como_silk', name: { ja: 'コモシルク', zh: '科莫丝绸' },
+    fibers: ['silk'], weaves: ['plain','satin_5'], neRange: [40,120], gsmRange: [40,150], epiRange: [60,160],
+    desc: { ja: 'イタリア・コモ産の高級プリントシルク', zh: '意大利科莫产高级印花丝绸' } },
+  { id: 'liberty_tana_lawn', name: { ja: 'リバティタナローン', zh: '自由塔纳细平布' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [80,140], gsmRange: [50,90], epiRange: [100,160],
+    desc: { ja: '英国リバティの極上ローン。小花柄が有名', zh: '英国自由商行极上细平布，小花纹闻名' } },
+  { id: 'madras_check', name: { ja: 'マドラスチェック', zh: '马德拉斯格' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [20,40], gsmRange: [80,160], epiRange: [40,80],
+    desc: { ja: 'インド・マドラス産の先染めチェック。退色が味になる', zh: '印度马德拉斯产先染格子，褪色有韵味' } },
+
+  // ═══════ 追加: サステナブル系 ═══════
+  { id: 'organic_cotton_plain', name: { ja: 'オーガニックコットン', zh: '有机棉' },
+    fibers: ['cotton'], weaves: ['plain','twill_2_1'], neRange: [16,50], gsmRange: [100,250], epiRange: [50,110],
+    desc: { ja: '有機栽培綿を使用した生地', zh: '使用有机栽培棉的面料' } },
+  { id: 'recycled_poly', name: { ja: 'リサイクルポリ', zh: '再生涤纶' },
+    fibers: ['polyester'], weaves: ['plain','twill_2_1'], neRange: [20,60], gsmRange: [80,250], epiRange: [50,120],
+    desc: { ja: 'PETボトルから再生したポリエステル', zh: '由PET瓶再生的涤纶' } },
+  { id: 'kapok_blend', name: { ja: 'カポック混', zh: '木棉混纺' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [10,30], gsmRange: [100,200], epiRange: [40,80],
+    desc: { ja: 'カポック混の軽量保温素材', zh: '木棉混纺轻量保暖面料' }, isBlend: true },
+
+  // ═══════ 追加: 起毛・ネル系 ═══════
+  { id: 'cotton_flannel', name: { ja: 'コットンフランネル', zh: '棉法兰绒' },
+    fibers: ['cotton'], weaves: ['twill_2_1','plain'], neRange: [10,24], gsmRange: [150,300], epiRange: [50,100],
+    desc: { ja: '綿の起毛織物。シャツやパジャマに', zh: '棉起毛织物，衬衫和睡衣用' } },
+  { id: 'wool_flannel', name: { ja: 'ウールフランネル', zh: '毛法兰绒' },
+    fibers: ['wool'], weaves: ['twill_2_1','plain'], neRange: [16,36], gsmRange: [200,400], epiRange: [50,100],
+    desc: { ja: 'ウールの起毛スーツ地。秋冬向け', zh: '毛起毛西装面料，秋冬用' } },
+  { id: 'brushed_twill', name: { ja: '起毛ツイル', zh: '拉毛斜纹' },
+    fibers: ['cotton','polyester'], weaves: ['twill_2_1','twill_2_2'], neRange: [10,30], gsmRange: [180,350], epiRange: [50,100],
+    desc: { ja: '片面または両面起毛の綾織', zh: '单面或双面起毛斜纹' } },
+
+  // ═══════ 追加: インテリア・産業用 ═══════
+  { id: 'upholstery_fabric', name: { ja: '椅張り地', zh: '家具布' },
+    fibers: ['polyester','cotton'], weaves: ['plain','twill_2_2','jacquard'], neRange: [5,20], gsmRange: [250,500], epiRange: [40,90],
+    desc: { ja: '家具用の耐摩耗厚地織物', zh: '家具用耐磨厚面料' } },
+  { id: 'curtain_voile', name: { ja: 'カーテンボイル', zh: '窗帘薄纱' },
+    fibers: ['polyester'], weaves: ['plain'], neRange: [40,100], gsmRange: [30,80], epiRange: [30,70],
+    desc: { ja: 'レースカーテン用の薄手織物', zh: '蕾丝窗帘用薄面料' } },
+  { id: 'sail_cloth', name: { ja: 'セイルクロス', zh: '帆布' },
+    fibers: ['nylon','polyester'], weaves: ['plain'], neRange: [10,30], gsmRange: [150,400], epiRange: [40,90],
+    desc: { ja: 'ヨットの帆用の高強度織物', zh: '帆船帆用高强度织物' } },
+
+  // ═══════ 追加: ジャカード・畝織系 ═══════
+  { id: 'jacquard_brocade', name: { ja: 'ジャカードブロケード', zh: '提花锦缎' },
+    fibers: ['silk','polyester'], weaves: ['jacquard','satin_5'], neRange: [20,60], gsmRange: [150,350], epiRange: [60,150],
+    desc: { ja: 'ジャカード織の華やかな柄入り織物', zh: '提花织的华丽花纹织物' } },
+  { id: 'matelassé', name: { ja: 'マトラッセ', zh: '绗缝织物' },
+    fibers: ['cotton','polyester'], weaves: ['jacquard','plain'], neRange: [16,40], gsmRange: [200,400], epiRange: [50,100],
+    desc: { ja: 'キルティング風の浮き柄がある二重織', zh: '有绗缝风浮花的双层织物' } },
+  { id: 'ottoman_rib', name: { ja: 'オットマン', zh: '奥斯曼罗纹' },
+    fibers: ['silk','polyester','cotton'], weaves: ['plain'], neRange: [10,30], gsmRange: [200,400], epiRange: [40,80],
+    desc: { ja: '横方向に太い畝がある織物', zh: '横向有粗罗纹的织物' } },
+  { id: 'bengaline', name: { ja: 'ベンガリン', zh: '横罗纹' },
+    fibers: ['rayon','polyester','cotton'], weaves: ['plain'], neRange: [16,40], gsmRange: [150,300], epiRange: [50,100],
+    desc: { ja: '横畝のあるドレス向け素材', zh: '有横罗纹的礼服面料' } },
+
+  // ═══════ 追加: コーティング・機能系 ═══════
+  { id: 'gore_tex_type', name: { ja: '防水透湿素材', zh: '防水透湿面料' },
+    fibers: ['nylon','polyester'], weaves: ['plain','twill_2_1'], neRange: [20,60], gsmRange: [100,250], epiRange: [50,120],
+    desc: { ja: '防水透湿メンブレン付き織物。アウトドアに', zh: '防水透湿膜织物，户外用' } },
+  { id: 'waxed_cotton', name: { ja: 'ワックスコットン', zh: '蜡棉' },
+    fibers: ['cotton'], weaves: ['plain','twill_2_1'], neRange: [10,24], gsmRange: [200,400], epiRange: [50,100],
+    desc: { ja: 'ワックス含浸の撥水綿。英国バブアー等', zh: '浸蜡防水棉，英国Barbour等' } },
+  { id: 'laminated_fabric', name: { ja: 'ラミネート加工', zh: '贴合面料' },
+    fibers: ['polyester','nylon'], weaves: ['plain'], neRange: [20,60], gsmRange: [100,300], epiRange: [50,120],
+    desc: { ja: 'フィルム貼り合わせの防水織物', zh: '薄膜贴合的防水织物' } },
+
+  // ═══════ 追加: 綿その他 ═══════
+  { id: 'moleskin', name: { ja: 'モールスキン', zh: '鼹鼠皮布' },
+    fibers: ['cotton'], weaves: ['satin_5','twill_2_1'], neRange: [10,24], gsmRange: [200,400], epiRange: [60,120],
+    desc: { ja: '密度の高い起毛綿織物。スエード調の手触り', zh: '高密度起毛棉织物，麂皮触感' } },
+  { id: 'drill_cotton', name: { ja: 'ドリル', zh: '斜纹粗布' },
+    fibers: ['cotton'], weaves: ['twill_2_1'], neRange: [10,20], gsmRange: [200,400], epiRange: [50,100],
+    desc: { ja: '厚手の斜文織。作業着やユニフォーム向け', zh: '厚斜纹粗布，工作服和制服用' } },
+  { id: 'voile_cotton', name: { ja: 'コットンボイル', zh: '棉巴里纱' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [50,120], gsmRange: [40,100], epiRange: [40,80],
+    desc: { ja: '薄手で透け感のある綿平織。カーテンやブラウスに', zh: '薄有透感的棉平纹，窗帘和女衬衫用' } },
+  { id: 'percale', name: { ja: 'パーケル', zh: '高支密平纹' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [50,100], gsmRange: [80,150], epiRange: [80,140],
+    desc: { ja: '高品質シーツ向け密な平織', zh: '高品质床单用密平纹' } },
+  { id: 'sateen_cotton', name: { ja: 'コットンサテン', zh: '棉缎' },
+    fibers: ['cotton'], weaves: ['satin_5'], neRange: [40,80], gsmRange: [100,220], epiRange: [80,160],
+    desc: { ja: '綿の朱子織。シルキーな光沢のシーツやシャツ地', zh: '棉缎纹，有丝滑光泽的床单和衬衫面料' } },
+  { id: 'hickory_stripe', name: { ja: 'ヒッコリーストライプ', zh: '工装条纹' },
+    fibers: ['cotton'], weaves: ['twill_2_1'], neRange: [10,20], gsmRange: [200,350], epiRange: [50,100],
+    desc: { ja: 'ワークウェア定番の縦縞デニム調', zh: '工装经典竖条纹牛仔风' } },
+  { id: 'seersucker', name: { ja: 'サッカー', zh: '泡泡纱' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [20,50], gsmRange: [80,180], epiRange: [40,90],
+    desc: { ja: '経糸の張力差で凹凸を出す夏向き生地', zh: '经纱张力差产生凹凸的夏季面料' } },
+  { id: 'calico', name: { ja: 'キャラコ', zh: '卡力科布' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [16,30], gsmRange: [100,200], epiRange: [50,90],
+    desc: { ja: '平織の未晒しまたは晒し綿。試し縫いや裏地に', zh: '平纹未漂白或漂白棉，试缝和衬里用' } },
+
+  // ═══════ 追加: ウール追加 ═══════
+  { id: 'wool_crepe', name: { ja: 'ウールクレープ', zh: '毛绉' },
+    fibers: ['wool'], weaves: ['plain'], neRange: [30,60], gsmRange: [150,280], epiRange: [50,100],
+    desc: { ja: '強撚ウールの平織。シボ感がありシワになりにくい', zh: '强捻毛平纹，有褶感不易起皱' }, twist: ['weft:high'] },
+  { id: 'wool_gauze', name: { ja: 'ウールガーゼ', zh: '毛薄纱' },
+    fibers: ['wool'], weaves: ['plain'], neRange: [30,60], gsmRange: [60,150], epiRange: [30,60],
+    desc: { ja: '薄手のウール平織。ストール向け', zh: '薄毛平纹，围巾用' } },
+  { id: 'wool_muslin', name: { ja: 'ウールモスリン', zh: '毛斜纹薄呢' },
+    fibers: ['wool'], weaves: ['plain'], neRange: [40,80], gsmRange: [80,160], epiRange: [40,80],
+    desc: { ja: '軽量で柔らかいウール平織。ドレスに', zh: '轻柔毛平纹，连衣裙用' } },
+  { id: 'whipcord', name: { ja: 'ウイップコード', zh: '鞭绳斜纹' },
+    fibers: ['wool','cotton'], weaves: ['twill_2_2'], neRange: [16,36], gsmRange: [200,400], epiRange: [50,110],
+    desc: { ja: '急角度の斜め畝がある丈夫な綾織', zh: '有陡斜罗纹的耐用斜纹' } },
+  { id: 'bedford_cord', name: { ja: 'ベッドフォードコード', zh: '贝德福德灯芯' },
+    fibers: ['wool','cotton'], weaves: ['plain','twill_2_1'], neRange: [16,36], gsmRange: [200,400], epiRange: [50,100],
+    desc: { ja: '縦方向の太畝がある織物。乗馬服やパンツに', zh: '纵向粗罗纹织物，骑马服和裤子用' } },
+  { id: 'tartan', name: { ja: 'タータン', zh: '格呢' },
+    fibers: ['wool'], weaves: ['twill_2_2'], neRange: [14,36], gsmRange: [180,350], epiRange: [40,90],
+    desc: { ja: 'スコットランドの格子柄綾織', zh: '苏格兰格子纹斜纹' } },
+
+  // ═══════ 追加: シルク追加 ═══════
+  { id: 'crepe_de_chine', name: { ja: 'クレープデシン', zh: '双绉' },
+    fibers: ['silk'], weaves: ['plain'], neRange: [40,100], gsmRange: [60,140], epiRange: [50,100],
+    desc: { ja: '経に無撚、緯に強撚の絹クレープ', zh: '经无捻纬强捻的丝绉' }, twist: ['weft:crepe'] },
+  { id: 'charmeuse', name: { ja: 'シャルムーズ', zh: '素绉缎' },
+    fibers: ['silk'], weaves: ['satin_5'], neRange: [40,100], gsmRange: [60,150], epiRange: [80,160],
+    desc: { ja: '表は光沢、裏はマットの朱子織絹', zh: '表面有光泽背面哑光的缎纹丝' } },
+  { id: 'georgette', name: { ja: 'ジョーゼット', zh: '乔其纱' },
+    fibers: ['silk','polyester'], weaves: ['plain'], neRange: [40,120], gsmRange: [30,100], epiRange: [30,80],
+    desc: { ja: '強撚糸のシボある薄手クレープ', zh: '强捻纱有褶的薄绉' }, twist: ['warp:high','weft:crepe'] },
+  { id: 'silk_velvet', name: { ja: 'シルクベルベット', zh: '丝绒' },
+    fibers: ['silk'], weaves: ['plain','satin_5'], neRange: [20,60], gsmRange: [150,350], epiRange: [60,130],
+    desc: { ja: 'パイル組織の豪華な絹織物', zh: '起绒组织的华丽丝织物' } },
+
+  // ═══════ 追加: その他素材 ═══════
+  { id: 'bamboo_plain', name: { ja: 'バンブー平織', zh: '竹纤维平纹' },
+    fibers: ['rayon'], weaves: ['plain'], neRange: [20,50], gsmRange: [100,200], epiRange: [40,90],
+    desc: { ja: '竹由来のレーヨン。抗菌性があり柔らかい', zh: '竹纤维人棉，有抗菌性且柔软' } },
+  { id: 'alpaca_plain', name: { ja: 'アルパカ平織', zh: '羊驼毛平纹' },
+    fibers: ['wool'], weaves: ['plain','twill_2_1'], neRange: [12,30], gsmRange: [150,350], epiRange: [30,70],
+    desc: { ja: 'アルパカ毛の軽くて暖かい生地', zh: '羊驼毛轻暖面料' } },
+  { id: 'camel_hair', name: { ja: 'キャメルヘア', zh: '骆驼毛' },
+    fibers: ['wool'], weaves: ['plain','twill_2_1'], neRange: [14,30], gsmRange: [200,400], epiRange: [30,70],
+    desc: { ja: 'ラクダの毛。コートに使われる高級素材', zh: '骆驼毛，大衣用高级面料' } },
+  { id: 'yak_wool', name: { ja: 'ヤクウール', zh: '牦牛毛' },
+    fibers: ['wool'], weaves: ['plain','twill_2_1'], neRange: [14,30], gsmRange: [150,350], epiRange: [30,70],
+    desc: { ja: 'ヤクの毛。カシミヤに似た保温性', zh: '牦牛毛，类似羊绒的保暖性' } },
+
+  // ═══════ 追加: デニム追加 ═══════
+  { id: 'selvedge_denim', name: { ja: 'セルビッチデニム', zh: '红耳牛仔' },
+    fibers: ['cotton'], weaves: ['denim'], neRange: [6,12], gsmRange: [300,500], epiRange: [50,90],
+    desc: { ja: '旧式力織機の耳付きデニム。ヴィンテージ感', zh: '旧式力织机有耳牛仔布，复古感' } },
+  { id: 'stretch_denim', name: { ja: 'ストレッチデニム', zh: '弹力牛仔' },
+    fibers: ['cotton','polyester'], weaves: ['denim'], neRange: [6,16], gsmRange: [200,400], epiRange: [50,90],
+    desc: { ja: 'ポリウレタン入りの伸縮デニム', zh: '含氨纶的弹力牛仔布' }, isBlend: true },
+  { id: 'chambray', name: { ja: 'シャンブレー', zh: '色织平纹' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [20,50], gsmRange: [80,180], epiRange: [50,100],
+    desc: { ja: '色経×白緯の平織。デニムより軽い', zh: '色经白纬平纹，比牛仔轻' } },
+
+  // ═══════ 追加: 特殊組織 ═══════
+  { id: 'double_cloth', name: { ja: '二重織', zh: '双层织物' },
+    fibers: ['cotton','wool'], weaves: ['plain','twill_2_1'], neRange: [10,30], gsmRange: [250,500], epiRange: [60,120],
+    desc: { ja: '表裏が異なる二層構造の織物', zh: '表里不同的双层结构织物' } },
+  { id: 'triple_gauze', name: { ja: '三重ガーゼ', zh: '三层纱' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [20,40], gsmRange: [100,250], epiRange: [30,70],
+    desc: { ja: '三層に重ねたガーゼ。ベビー用品に人気', zh: '三层叠纱布，婴儿用品流行' } },
+  { id: 'honeycomb', name: { ja: 'ハニカム', zh: '蜂巢织' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [10,30], gsmRange: [150,300], epiRange: [40,80],
+    desc: { ja: '蜂の巣模様の凹凸がある織物。タオルやカットソーに', zh: '蜂巢纹凹凸织物，毛巾和T恤用' } },
+  { id: 'crepon', name: { ja: 'クレポン', zh: '大绉' },
+    fibers: ['wool','silk','polyester'], weaves: ['plain'], neRange: [20,60], gsmRange: [100,250], epiRange: [40,90],
+    desc: { ja: '大きなシボのあるクレープ織物', zh: '有大褶的绉织物' }, twist: ['weft:crepe'] },
+  { id: 'herringbone', name: { ja: 'ヘリンボーン', zh: '人字纹' },
+    fibers: ['wool','cotton','linen'], weaves: ['twill_2_2','twill_2_1'], neRange: [10,40], gsmRange: [150,400], epiRange: [40,110],
+    desc: { ja: 'V字に方向が変わる杉綾織', zh: 'V字方向交替的人字纹' } },
+  { id: 'barathea', name: { ja: 'バラシア', zh: '粒面呢' },
+    fibers: ['wool','silk'], weaves: ['twill_2_2','satin_5'], neRange: [30,60], gsmRange: [180,300], epiRange: [60,120],
+    desc: { ja: '小さな粒状の織り目。タキシードやフォーマルに', zh: '小颗粒状织纹，礼服用' } },
+  { id: 'cloque', name: { ja: 'クロッケ', zh: '泡泡绉' },
+    fibers: ['cotton','silk','polyester'], weaves: ['plain','jacquard'], neRange: [20,50], gsmRange: [120,280], epiRange: [40,90],
+    desc: { ja: '表面にふくれた凹凸のある織物', zh: '表面有膨起凹凸的织物' } },
+  { id: 'dimity', name: { ja: 'ディミティ', zh: '条格细布' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [30,60], gsmRange: [60,140], epiRange: [50,100],
+    desc: { ja: '縦方向に細い畝のある薄手綿平織', zh: '纵向有细罗纹的薄棉平纹' } },
+  { id: 'grosgrain_fabric', name: { ja: 'グログラン', zh: '罗缎' },
+    fibers: ['silk','polyester'], weaves: ['plain'], neRange: [20,50], gsmRange: [100,250], epiRange: [50,100],
+    desc: { ja: '横畝のある密な平織。リボンやドレスに', zh: '有横罗纹的密平纹，丝带和礼服用' } },
+  { id: 'faille', name: { ja: 'ファイユ', zh: '罗缎' },
+    fibers: ['silk','rayon','polyester'], weaves: ['plain'], neRange: [20,50], gsmRange: [100,220], epiRange: [50,100],
+    desc: { ja: '細い横畝のあるドレス素材', zh: '有细横罗纹的礼服面料' } },
+
+  // ═══════ 追加: 最終補充 ═══════
+  { id: 'crash_linen', name: { ja: 'クラッシュリネン', zh: '揉皱亚麻' },
+    fibers: ['linen'], weaves: ['plain'], neRange: [10,30], gsmRange: [120,280], epiRange: [30,70],
+    desc: { ja: 'わざとシワを付けた麻織物。ナチュラルな風合い', zh: '故意做皱的麻织物，自然风格' } },
+  { id: 'wool_jersey_woven', name: { ja: 'ウールジャージー（織）', zh: '毛针织风' },
+    fibers: ['wool'], weaves: ['plain'], neRange: [30,60], gsmRange: [150,280], epiRange: [40,80],
+    desc: { ja: 'ジャージー風の柔らかいウール織物', zh: '针织风柔软毛织物' } },
+  { id: 'crinkle_cotton', name: { ja: 'クリンクルコットン', zh: '皱棉' },
+    fibers: ['cotton'], weaves: ['plain'], neRange: [20,40], gsmRange: [80,180], epiRange: [40,80],
+    desc: { ja: '永久的なシワ加工の綿織物', zh: '永久性皱加工的棉织物' } },
+  { id: 'gabardine_cotton', name: { ja: 'コットンギャバジン', zh: '棉华达呢' },
+    fibers: ['cotton'], weaves: ['twill_2_2','twill_2_1'], neRange: [16,40], gsmRange: [180,320], epiRange: [60,120],
+    desc: { ja: '綿の高密度ギャバジン。トレンチコート向け', zh: '棉高密度华达呢，风衣用' } },
+  { id: 'cavalry_cotton', name: { ja: 'チノクロス', zh: '卡其布' },
+    fibers: ['cotton'], weaves: ['twill_2_1'], neRange: [16,30], gsmRange: [180,300], epiRange: [60,110],
+    desc: { ja: 'チノパンの定番素材。綿のツイル', zh: '卡其裤经典面料，棉斜纹' } },
+  { id: 'boucle_tweed', name: { ja: 'ブークレツイード', zh: '圈圈花呢' },
+    fibers: ['wool','cotton'], weaves: ['plain','twill_2_1'], neRange: [4,14], gsmRange: [250,500], epiRange: [30,60],
+    desc: { ja: 'ループ糸入りのツイード。ジャケットに', zh: '含圈纱花呢，夹克用' } },
+  { id: 'wool_canvas', name: { ja: 'ウールキャンバス', zh: '毛帆布' },
+    fibers: ['wool'], weaves: ['plain'], neRange: [8,20], gsmRange: [250,450], epiRange: [40,80],
+    desc: { ja: 'ウールの厚手平織。コートやバッグに', zh: '毛厚平纹，大衣和包用' } },
+  { id: 'tissue_faille', name: { ja: 'ティッシュファイユ', zh: '薄罗缎' },
+    fibers: ['silk','polyester'], weaves: ['plain'], neRange: [30,80], gsmRange: [60,140], epiRange: [50,100],
+    desc: { ja: '薄手で軽い横畝のあるドレス素材', zh: '薄轻有横罗纹的礼服面料' } },
 ];
 
 // ============================================================
@@ -901,19 +1360,30 @@ function identifyFabric(config) {
     const matchDetail = [];
 
     // --- 1. 繊維マッチ (最大30点) ---
+    // 経糸と緯糸の繊維を別々に評価し、fabric.fibers との適合度を計算
     maxScore += 30;
-    const fiberMatch = fabric.fibers.some(f => fibers.includes(f));
-    const mainFiberMatch = fabric.fibers.includes(mainFiber);
-    if (mainFiberMatch) {
-      score += 30;
-      matchDetail.push('fiber:main');
-    } else if (fiberMatch) {
-      score += 15;
-      matchDetail.push('fiber:partial');
-    }
+    const warpFibers = warpYarn.comp.map(c => c.f);
+    const weftFibers = weftYarn.comp.map(c => c.f);
+    // 経糸の繊維がfabricにマッチする割合（比率加重）
+    const warpMatchPct = warpYarn.comp.reduce((s, c) => s + (fabric.fibers.includes(c.f) ? c.p : 0), 0) / 100;
+    // 緯糸の繊維がfabricにマッチする割合（比率加重）
+    const weftMatchPct = weftYarn.comp.reduce((s, c) => s + (fabric.fibers.includes(c.f) ? c.p : 0), 0) / 100;
+    // 経緯の平均マッチ率
+    const avgFiberMatch = (warpMatchPct + weftMatchPct) / 2;
+    // fabricの全fibers要素が使用繊維に存在するか（カバー率）
+    const fabricFiberCoverage = fabric.fibers.filter(f => fibers.includes(f)).length / fabric.fibers.length;
+    // 総合繊維スコア = 平均マッチ率 × 0.6 + カバー率 × 0.4
+    const fiberScore = Math.round(30 * (avgFiberMatch * 0.6 + fabricFiberCoverage * 0.4));
+    score += fiberScore;
+    if (fiberScore >= 25) matchDetail.push('fiber:strong');
+    else if (fiberScore >= 15) matchDetail.push('fiber:partial');
+    else if (fiberScore > 0) matchDetail.push('fiber:weak');
     // ブレンド指定のチェック
     if (fabric.isBlend && !isBlend) score -= 10;
-    if (!fabric.isBlend && isBlend && fabric.fibers.length === 1) score -= 5;
+    if (!fabric.isBlend && isBlend && fabric.fibers.length === 1) {
+      const anyMatch = fabric.fibers.some(f => fibers.includes(f));
+      score -= anyMatch ? 3 : 8;
+    }
 
     // --- 2. 織り組織マッチ (最大30点) ---
     maxScore += 30;
@@ -1175,6 +1645,26 @@ const LANG = {
     fabricName_candidates: '候補生地名',
     fabricName_note_uncertain: '※ 条件の組み合わせが複数の生地名に該当します。最終判断は実物の風合い・仕上げによります。',
     fabricName_note_definite: '条件から高い確度で判定できました。',
+    // スワッチ帳
+    swatchBook: 'スワッチ帳',
+    swatchAdd: '新規スワッチ登録',
+    swatchName: '生地名・品番',
+    swatchWarpNe: '経糸番手',
+    swatchWeftNe: '緯糸番手',
+    swatchWarpComp: '経糸組成',
+    swatchWeftComp: '緯糸組成',
+    swatchEpi: '経密度',
+    swatchPpi: '緯密度',
+    swatchMemo: 'メモ',
+    swatchPhoto: '写真',
+    swatchSave: '保存',
+    swatchDelete: '削除',
+    swatchApply: '適用',
+    swatchNoItems: 'スワッチが登録されていません',
+    swatchSaved: '保存しました',
+    swatchDeleted: '削除しました',
+    swatchPhotoHint: 'タップして写真を追加',
+    swatchClose: '閉じる',
   },
   zh: {
     title: '色织模拟器 V3',
@@ -1329,6 +1819,26 @@ const LANG = {
     fabricName_candidates: '候选面料名称',
     fabricName_note_uncertain: '※ 条件组合对应多种面料名称。最终判断需根据实物手感和后整理确定。',
     fabricName_note_definite: '根据条件可高确度识别。',
+    // 样本册
+    swatchBook: '样本册',
+    swatchAdd: '新建样本',
+    swatchName: '面料名/品号',
+    swatchWarpNe: '经纱支数',
+    swatchWeftNe: '纬纱支数',
+    swatchWarpComp: '经纱成分',
+    swatchWeftComp: '纬纱成分',
+    swatchEpi: '经密',
+    swatchPpi: '纬密',
+    swatchMemo: '备注',
+    swatchPhoto: '照片',
+    swatchSave: '保存',
+    swatchDelete: '删除',
+    swatchApply: '应用',
+    swatchNoItems: '尚无样本',
+    swatchSaved: '已保存',
+    swatchDeleted: '已删除',
+    swatchPhotoHint: '点击添加照片',
+    swatchClose: '关闭',
   }
 };
 
@@ -2413,6 +2923,8 @@ let state = {
   warpYarnId: 'combed_40',
   weftYarnId: 'combed_40',
   yarnCat: 'cotton',
+  warpYarnCat: 'cotton',
+  weftYarnCat: 'cotton',
   pitch: 28,
   zoom: 1,
   epi: 100,
@@ -2467,7 +2979,7 @@ function setState(ns) {
   const uiOnly = Object.keys(ns).every(k => ['tab','modal','editColor','undoStack','redoStack','compareMode','savedConfig'].includes(k));
   if (!uiOnly && !ns._noUndo) {
     const snap = {};
-    for (const k of ['pattern','checkPresetId','weaveId','weaveCat','warpColors','weftColors','warpYarnId','weftYarnId','yarnCat','pitch','zoom','epi','ppi','warpArrangement','weftArrangement']) {
+    for (const k of ['pattern','checkPresetId','weaveId','weaveCat','warpColors','weftColors','warpYarnId','weftYarnId','yarnCat','warpYarnCat','weftYarnCat','pitch','zoom','epi','ppi','warpArrangement','weftArrangement']) {
       snap[k] = Array.isArray(state[k]) ? [...state[k]] : state[k];
     }
     state.undoStack = [...(state.undoStack||[]).slice(-29), snap];
@@ -2475,8 +2987,26 @@ function setState(ns) {
   }
   delete ns._noUndo;
   Object.assign(state, ns);
-  // 糸カテゴリ変更時：選択中の糸がフィルタ外なら先頭に自動切替
+  // 経糸カテゴリ変更時：選択中の経糸がフィルタ外なら先頭に自動切替
+  if (ns.warpYarnCat !== undefined) {
+    const catYarns = YARN_DB.filter(y => y.cat === state.warpYarnCat);
+    if (catYarns.length > 0) {
+      const ids = catYarns.map(y => y.id);
+      if (!ids.includes(state.warpYarnId)) state.warpYarnId = catYarns[0].id;
+    }
+  }
+  // 緯糸カテゴリ変更時：選択中の緯糸がフィルタ外なら先頭に自動切替
+  if (ns.weftYarnCat !== undefined) {
+    const catYarns = YARN_DB.filter(y => y.cat === state.weftYarnCat);
+    if (catYarns.length > 0) {
+      const ids = catYarns.map(y => y.id);
+      if (!ids.includes(state.weftYarnId)) state.weftYarnId = catYarns[0].id;
+    }
+  }
+  // 旧yarnCat互換：両方同時に変更
   if (ns.yarnCat !== undefined) {
+    state.warpYarnCat = state.yarnCat;
+    state.weftYarnCat = state.yarnCat;
     const catYarns = YARN_DB.filter(y => y.cat === state.yarnCat);
     if (catYarns.length > 0) {
       const ids = catYarns.map(y => y.id);
@@ -2687,9 +3217,10 @@ function render() {
     ${state.modal === 'weaveEditor' ? renderWeaveEditorModal(L) : ''}
     ${state.modal === 'orderSheet' ? renderOrderSheetModal(L) : ''}
     ${state.modal === 'export' ? renderExportModal(L) : ''}
+    ${state.modal === 'swatch' ? renderSwatchModal(L) : ''}
   `;
 
-  setTimeout(renderCanvas, 0);
+  requestAnimationFrame(() => requestAnimationFrame(renderCanvas));
 }
 
 function renderDesign(L) {
@@ -2826,39 +3357,62 @@ function renderWeave(L, weave) {
 }
 
 function renderYarn(L, warpYarn, weftYarn) {
-  const filtered = YARN_DB.filter(y => y.cat === state.yarnCat);
+  const warpFiltered = YARN_DB.filter(y => y.cat === state.warpYarnCat);
+  const weftFiltered = YARN_DB.filter(y => y.cat === state.weftYarnCat);
   const physics = calcPhysicsInfo(state);
 
   return `
-    <div>
-      <label class="block text-sm font-medium mb-2 text-slate-300">${L.yarnCategory}</label>
-      <div class="flex flex-wrap gap-2">
-        ${Object.keys(L.fiberCategories).map(c => `<button onclick="setState({yarnCat:'${c}'})" class="px-3 py-1.5 rounded-lg text-sm btn-ghost ${state.yarnCat===c?'active':''}">${L.fiberCategories[c]}</button>`).join('')}
-      </div>
-    </div>
-    <div>
-      <label class="text-sm font-medium mb-2 block text-slate-300">${L.warpYarn}</label>
-      <select onchange="setState({warpYarnId:this.value})" class="w-full p-2 rounded-lg text-sm">
-        ${filtered.map(y => `<option value="${y.id}" ${state.warpYarnId===y.id?'selected':''}>${y.name[state.lang]} (${y.ne}Ne)</option>`).join('')}
-      </select>
-      ${warpYarn ? `<div class="text-xs text-slate-500 mt-1">${L.yarnDiameter}: ${physics?.warpDiameter || '-'}mm | ${L.maxDensity}: ${physics?.warpMaxDensity || '-'}/in</div>` : ''}
-    </div>
-    <div>
-      <label class="text-sm font-medium mb-2 block text-slate-300">${L.weftYarn}</label>
-      <select onchange="setState({weftYarnId:this.value})" class="w-full p-2 rounded-lg text-sm">
-        ${filtered.map(y => `<option value="${y.id}" ${state.weftYarnId===y.id?'selected':''}>${y.name[state.lang]} (${y.ne}Ne)</option>`).join('')}
-      </select>
-      ${weftYarn ? `<div class="text-xs text-slate-500 mt-1">${L.yarnDiameter}: ${physics?.weftDiameter || '-'}mm | ${L.maxDensity}: ${physics?.weftMaxDensity || '-'}/in</div>` : ''}
-    </div>
-    ${warpYarn ? `
-      <div class="info-card">
-        <h4 class="font-medium text-sm mb-2 text-white">${L.warpYarn}: ${warpYarn.name[state.lang]}</h4>
-        <div class="text-xs text-slate-400 mb-2">${getComp(warpYarn, state.lang)}</div>
-        <div class="grid grid-cols-3 gap-2 text-xs">
-          ${Object.entries(warpYarn.chars).slice(0,6).map(([k,v]) => `<div><div class="font-medium text-white">${v}/5</div><div class="text-slate-500">${L.characteristics[k]||k}</div></div>`).join('')}
+    <!-- 経糸セクション -->
+    <div class="border border-slate-600/30 rounded-xl p-4 space-y-3">
+      <h4 class="font-medium text-sm text-indigo-300 flex items-center gap-2"><span>🧵</span> ${L.warpYarn}</h4>
+      <div>
+        <label class="block text-xs font-medium mb-1.5 text-slate-400">${L.yarnCategory}</label>
+        <div class="flex flex-wrap gap-1.5">
+          ${Object.keys(L.fiberCategories).map(c => `<button onclick="setState({warpYarnCat:'${c}'})" class="px-2.5 py-1 rounded-lg text-xs btn-ghost ${state.warpYarnCat===c?'active':''}">${L.fiberCategories[c]}</button>`).join('')}
         </div>
       </div>
-    ` : ''}
+      <div>
+        <select onchange="setState({warpYarnId:this.value})" class="w-full p-2 rounded-lg text-sm">
+          ${warpFiltered.map(y => `<option value="${y.id}" ${state.warpYarnId===y.id?'selected':''}>${y.name[state.lang]} (${y.ne}Ne)</option>`).join('')}
+        </select>
+        ${warpYarn ? `<div class="text-xs text-slate-500 mt-1">${L.yarnDiameter}: ${physics?.warpDiameter || '-'}mm | ${L.maxDensity}: ${physics?.warpMaxDensity || '-'}/in</div>` : ''}
+      </div>
+      ${warpYarn ? `
+        <div class="info-card">
+          <div class="text-xs text-slate-400 mb-2">${getComp(warpYarn, state.lang)}</div>
+          <div class="grid grid-cols-3 gap-2 text-xs">
+            ${Object.entries(warpYarn.chars).slice(0,6).map(([k,v]) => `<div><div class="font-medium text-white">${v}/5</div><div class="text-slate-500">${L.characteristics[k]||k}</div></div>`).join('')}
+          </div>
+          <div class="mt-2 text-xs text-slate-400">${L.yarnTwist || '撚り'}: <span class="font-medium text-slate-200">${L.twistValues?.[warpYarn.twist] || warpYarn.twist || 'normal'}</span></div>
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- 緯糸セクション -->
+    <div class="border border-slate-600/30 rounded-xl p-4 space-y-3">
+      <h4 class="font-medium text-sm text-amber-300 flex items-center gap-2"><span>🪡</span> ${L.weftYarn}</h4>
+      <div>
+        <label class="block text-xs font-medium mb-1.5 text-slate-400">${L.yarnCategory}</label>
+        <div class="flex flex-wrap gap-1.5">
+          ${Object.keys(L.fiberCategories).map(c => `<button onclick="setState({weftYarnCat:'${c}'})" class="px-2.5 py-1 rounded-lg text-xs btn-ghost ${state.weftYarnCat===c?'active':''}">${L.fiberCategories[c]}</button>`).join('')}
+        </div>
+      </div>
+      <div>
+        <select onchange="setState({weftYarnId:this.value})" class="w-full p-2 rounded-lg text-sm">
+          ${weftFiltered.map(y => `<option value="${y.id}" ${state.weftYarnId===y.id?'selected':''}>${y.name[state.lang]} (${y.ne}Ne)</option>`).join('')}
+        </select>
+        ${weftYarn ? `<div class="text-xs text-slate-500 mt-1">${L.yarnDiameter}: ${physics?.weftDiameter || '-'}mm | ${L.maxDensity}: ${physics?.weftMaxDensity || '-'}/in</div>` : ''}
+      </div>
+      ${weftYarn ? `
+        <div class="info-card">
+          <div class="text-xs text-slate-400 mb-2">${getComp(weftYarn, state.lang)}</div>
+          <div class="grid grid-cols-3 gap-2 text-xs">
+            ${Object.entries(weftYarn.chars).slice(0,6).map(([k,v]) => `<div><div class="font-medium text-white">${v}/5</div><div class="text-slate-500">${L.characteristics[k]||k}</div></div>`).join('')}
+          </div>
+          <div class="mt-2 text-xs text-slate-400">${L.yarnTwist || '撚り'}: <span class="font-medium text-slate-200">${L.twistValues?.[weftYarn.twist] || weftYarn.twist || 'normal'}</span></div>
+        </div>
+      ` : ''}
+    </div>
   `;
 }
 
@@ -3045,9 +3599,9 @@ function renderTools(L) {
               <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">📤</div>
               <div class="font-medium text-sm">${L.exportMenu}</div>
       </button>
-      <button onclick="setState({modal:'export'})" class="p-4 rounded-xl btn-ghost text-left group">
-              <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">📤</div>
-              <div class="font-medium text-sm">${L.exportMenu}</div>
+      <button onclick="setState({modal:'swatch'})" class="p-4 rounded-xl btn-ghost text-left group">
+              <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">🧾</div>
+              <div class="font-medium text-sm">${L.swatchBook}</div>
       </button>
       <button onclick="undoState()" class="p-4 rounded-xl btn-ghost text-left group ${(state.undoStack||[]).length===0?'opacity-30':''}">
         <div class="text-2xl mb-1 group-hover:scale-110 transition-transform">↩️</div>
@@ -3634,6 +4188,137 @@ function renderOrderSheetModal(L) {
 
 
 // ============================================================
+// Phase 3b: スワッチ帳機能 (localStorage)
+// ============================================================
+function getSwatches() {
+  try { return JSON.parse(localStorage.getItem('sakizome_swatches') || '[]'); }
+  catch(e) { return []; }
+}
+function saveSwatchList(list) {
+  localStorage.setItem('sakizome_swatches', JSON.stringify(list));
+}
+function handleSwatchPhoto(input, idx) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const list = getSwatches();
+    if (list[idx]) { list[idx].photo = e.target.result; saveSwatchList(list); setState({_swatchRefresh: Date.now()}); }
+  };
+  reader.readAsDataURL(file);
+}
+function saveSwatch(form) {
+  const fd = new FormData(form);
+  const swatch = {
+    id: Date.now(),
+    name: fd.get('swName') || '',
+    warpNe: fd.get('swWarpNe') || '',
+    weftNe: fd.get('swWeftNe') || '',
+    warpComp: fd.get('swWarpComp') || '',
+    weftComp: fd.get('swWeftComp') || '',
+    epi: fd.get('swEpi') || '',
+    ppi: fd.get('swPpi') || '',
+    memo: fd.get('swMemo') || '',
+    photo: null,
+    created: new Date().toISOString()
+  };
+  const list = getSwatches();
+  list.unshift(swatch);
+  saveSwatchList(list);
+  form.reset();
+  setState({_swatchRefresh: Date.now()});
+  const L = LANG[state.lang] || LANG.ja;
+  const toast = document.getElementById('swatchToast');
+  if (toast) { toast.textContent = L.swatchSaved; toast.classList.remove('hidden'); setTimeout(() => toast.classList.add('hidden'), 1500); }
+}
+function deleteSwatch(idx) {
+  const list = getSwatches();
+  list.splice(idx, 1);
+  saveSwatchList(list);
+  setState({_swatchRefresh: Date.now()});
+  const L = LANG[state.lang] || LANG.ja;
+  const toast = document.getElementById('swatchToast');
+  if (toast) { toast.textContent = L.swatchDeleted; toast.classList.remove('hidden'); setTimeout(() => toast.classList.add('hidden'), 1500); }
+}
+function applySwatch(idx) {
+  const list = getSwatches();
+  const sw = list[idx];
+  if (!sw) return;
+  const ns = {};
+  if (sw.warpNe) ns.warpNe = parseFloat(sw.warpNe);
+  if (sw.weftNe) ns.weftNe = parseFloat(sw.weftNe);
+  if (sw.epi) ns.epi = parseInt(sw.epi);
+  if (sw.ppi) ns.ppi = parseInt(sw.ppi);
+  ns.modal = null;
+  setState(ns);
+}
+
+function renderSwatchModal(L) {
+  const swatches = getSwatches();
+  return `
+    <div class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4" onclick="if(event.target===this)setState({modal:null})">
+      <div class="glass rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto relative">
+        <button onclick="setState({modal:null})" class="absolute top-3 right-3 text-slate-400 hover:text-white text-xl">✕</button>
+        <h2 class="text-xl font-bold mb-4">🧾 ${L.swatchBook}</h2>
+
+        <div id="swatchToast" class="hidden fixed top-4 left-1/2 -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-[100] text-sm"></div>
+
+        <!-- 新規登録フォーム -->
+        <details class="mb-4">
+          <summary class="cursor-pointer text-sm font-semibold text-cyan-400 hover:text-cyan-300">➕ ${L.swatchAdd}</summary>
+          <form onsubmit="event.preventDefault();saveSwatch(this)" class="mt-3 space-y-2">
+            <input name="swName" placeholder="${L.swatchName}" class="w-full bg-slate-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+            <div class="grid grid-cols-2 gap-2">
+              <input name="swWarpNe" placeholder="${L.swatchWarpNe}" class="bg-slate-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+              <input name="swWeftNe" placeholder="${L.swatchWeftNe}" class="bg-slate-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input name="swWarpComp" placeholder="${L.swatchWarpComp}" class="bg-slate-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+              <input name="swWeftComp" placeholder="${L.swatchWeftComp}" class="bg-slate-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input name="swEpi" type="number" placeholder="${L.swatchEpi}" class="bg-slate-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+              <input name="swPpi" type="number" placeholder="${L.swatchPpi}" class="bg-slate-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+            </div>
+            <textarea name="swMemo" placeholder="${L.swatchMemo}" rows="2" class="w-full bg-slate-700/50 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"></textarea>
+            <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg py-2 text-sm font-semibold transition-colors">${L.swatchSave}</button>
+          </form>
+        </details>
+
+        <!-- スワッチリスト -->
+        ${swatches.length === 0 ? `<p class="text-center text-slate-500 py-8">${L.swatchNoItems}</p>` :
+          swatches.map((sw, i) => `
+            <div class="glass rounded-xl p-3 mb-3">
+              <div class="flex justify-between items-start mb-2">
+                <div class="font-semibold text-sm text-white">${sw.name || '#' + (i+1)}</div>
+                <div class="flex gap-1">
+                  <button onclick="applySwatch(${i})" class="text-xs bg-cyan-600/60 hover:bg-cyan-500 text-white px-2 py-1 rounded">${L.swatchApply}</button>
+                  <button onclick="if(confirm('OK?'))deleteSwatch(${i})" class="text-xs bg-red-600/60 hover:bg-red-500 text-white px-2 py-1 rounded">${L.swatchDelete}</button>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-300">
+                ${sw.warpNe ? `<div>${L.swatchWarpNe}: ${sw.warpNe}</div>` : ''}
+                ${sw.weftNe ? `<div>${L.swatchWeftNe}: ${sw.weftNe}</div>` : ''}
+                ${sw.warpComp ? `<div>${L.swatchWarpComp}: ${sw.warpComp}</div>` : ''}
+                ${sw.weftComp ? `<div>${L.swatchWeftComp}: ${sw.weftComp}</div>` : ''}
+                ${sw.epi ? `<div>${L.swatchEpi}: ${sw.epi}</div>` : ''}
+                ${sw.ppi ? `<div>${L.swatchPpi}: ${sw.ppi}</div>` : ''}
+              </div>
+              ${sw.memo ? `<div class="text-xs text-slate-400 mt-1">${sw.memo}</div>` : ''}
+              ${sw.photo ? `<img src="${sw.photo}" class="mt-2 rounded-lg max-h-32 w-full object-cover">` : ''}
+              <label class="block mt-2 text-xs text-slate-500 cursor-pointer hover:text-cyan-400 transition-colors">
+                📷 ${L.swatchPhotoHint}
+                <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleSwatchPhoto(this,${i})">
+              </label>
+            </div>
+          `).join('')
+        }
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
 // Phase 3: エクスポート機能 (CSV / PDF / 高解像度画像)
 // ============================================================
 function renderExportModal(L) {
@@ -3906,13 +4591,17 @@ window.redoState = () => {
 window.exportCSV = exportCSV;
 window.exportPDF = exportPDF;
 window.exportHiRes = exportHiRes;
+window.handleSwatchPhoto = handleSwatchPhoto;
+window.saveSwatch = saveSwatch;
+window.deleteSwatch = deleteSwatch;
+window.applySwatch = applySwatch;
 window.downloadPng = () => { const c = document.getElementById('canvas') || document.getElementById('canvasA'); if (c) { const l = document.createElement('a'); l.download = `JYUKO_fabric_${state.weaveId}.png`; l.href = c.toDataURL('image/png'); l.click(); } };
 window.toggleCompare = () => { if (!state.compareMode) { setState({ compareMode: true, savedConfig: { ...state } }); } else { setState({ compareMode: false, savedConfig: null }); } };
 window.swapCompare = () => {
   if (state.compareMode && state.savedConfig) {
     const currentMain = { pattern: state.pattern, weaveId: state.weaveId, weaveCat: state.weaveCat, warpColors: [...state.warpColors], weftColors: [...state.weftColors], warpYarnId: state.warpYarnId, weftYarnId: state.weftYarnId, yarnCat: state.yarnCat, epi: state.epi, ppi: state.ppi, pitch: state.pitch, zoom: state.zoom };
     const saved = state.savedConfig;
-    setState({ ...currentMain, pattern: saved.pattern, weaveId: saved.weaveId, weaveCat: saved.weaveCat, warpColors: [...(saved.warpColors||[])], weftColors: [...(saved.weftColors||[])], warpYarnId: saved.warpYarnId, weftYarnId: saved.weftYarnId, yarnCat: saved.yarnCat, epi: saved.epi, ppi: saved.ppi, pitch: saved.pitch, zoom: saved.zoom, savedConfig: currentMain });
+    setState({ ...currentMain, pattern: saved.pattern, weaveId: saved.weaveId, weaveCat: saved.weaveCat, warpColors: [...(saved.warpColors||[])], weftColors: [...(saved.weftColors||[])], warpYarnId: saved.warpYarnId, weftYarnId: saved.weftYarnId, yarnCat: saved.yarnCat, warpYarnCat: saved.warpYarnCat || saved.yarnCat, weftYarnCat: saved.weftYarnCat || saved.yarnCat, epi: saved.epi, ppi: saved.ppi, pitch: saved.pitch, zoom: saved.zoom, savedConfig: currentMain });
   }
 };
 window.applyRandom = () => setState(randomGenerate());
