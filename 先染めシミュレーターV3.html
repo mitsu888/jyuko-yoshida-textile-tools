@@ -1087,6 +1087,9 @@ const FABRIC_NAME_DB = [
   { id: 'tencel_denim', name: { ja: 'テンセルデニム', zh: '天丝牛仔' },
     fibers: ['lyocell','cotton'], weaves: ['denim'], neRange: [10, 24], gsmRange: [180, 300], epiRange: [60, 100],
     desc: { ja: 'テンセル混のソフトデニム', zh: '天丝混纺柔软牛仔布' }, isBlend: true },
+  { id: 'tencel_linen_blend', name: { ja: 'テンセル綿麻ブレンド', zh: '天丝棉麻混纺' },
+    fibers: ['lyocell','cotton','linen'], weaves: ['plain','twill_2_1','twill_2_2'], neRange: [16, 50], gsmRange: [100, 250], epiRange: [50, 130],
+    desc: { ja: 'テンセルと綿麻の混合素材。ドレープ性と清涼感を兼ね備える', zh: '天丝与棉麻混合，兼具垂感和清凉感' }, isBlend: true },
   { id: 'modal_fabric', name: { ja: 'モダール', zh: '莫代尔' },
     fibers: ['modal'], weaves: ['plain','twill_2_1'], neRange: [20, 60], gsmRange: [80, 180], epiRange: [50, 120],
     desc: { ja: 'ブナ材パルプ由来の再生繊維。柔らかくシルキー', zh: '山毛榉浆粕再生纤维，柔软有丝感' } },
@@ -1363,10 +1366,15 @@ function identifyFabric(config) {
     else if (fiberScore > 0) matchDetail.push('fiber:weak');
     // ブレンド指定のチェック
     if (fabric.isBlend && !isBlend) score -= 10;
-    if (!fabric.isBlend && isBlend && fabric.fibers.length === 1) {
-      // 単一繊維のfabricに混紡糸を使用 → ペナルティ（ただし繊維が1つでも合ってれば軽減）
-      const anyMatch = fabric.fibers.some(f => fibers.includes(f));
-      score -= anyMatch ? 3 : 8;
+    if (!fabric.isBlend && isBlend) {
+      // 非ブレンドfabricに混紡糸を使用 → 非マッチ繊維比率に応じたペナルティ
+      // 例: テンセル経糸＋綿麻緯糸でテンセルツイル(lyocell単一)は avgFiberMatch=0.5 → penalty=10
+      const nonMatchFraction = 1 - avgFiberMatch;
+      if (nonMatchFraction >= 0.3) {
+        score -= Math.round(nonMatchFraction * 20);
+      } else if (nonMatchFraction > 0) {
+        score -= 3;
+      }
     }
 
     // --- 2. 織り組織マッチ (最大30点) ---
