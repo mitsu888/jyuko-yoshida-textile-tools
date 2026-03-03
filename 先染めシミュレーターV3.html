@@ -3244,11 +3244,11 @@ function drawFabric(ctx, w, h, config, withLogo = false) {
   const warpDiameter_mm = calcYarnDiameter(warpYarn.ne, warpFiberDensity);
   const weftDiameter_mm = calcYarnDiameter(weftYarn.ne, weftFiberDensity);
 
-  const baseScale = config.zoom * 3;
-  const warpWidth = Math.max(1, warpDiameter_mm * baseScale);
-  const weftHeight = Math.max(1, weftDiameter_mm * baseScale);
-  const warpSpacing = (25.4 / config.epi) * baseScale;
-  const weftSpacing = (25.4 / config.ppi) * baseScale;
+  const baseScale = config.zoom * 18;
+  const warpWidth = Math.max(2, warpDiameter_mm * baseScale);
+  const weftHeight = Math.max(2, weftDiameter_mm * baseScale);
+  const warpSpacing = Math.max(warpWidth + 0.5, (25.4 / config.epi) * baseScale);
+  const weftSpacing = Math.max(weftHeight + 0.5, (25.4 / config.ppi) * baseScale);
   const patternPitch = config.pitch * config.zoom;
   const { matrix, rx, ry } = weave;
 
