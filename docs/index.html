@@ -710,15 +710,19 @@ const FABRIC_NAME_DB = [
     desc: { ja: '綾織の中厚地。チノパンの由来。丈夫でカジュアル', zh: '斜纹中厚面料，卡其裤的来源，结实休闲' } },
   { id: 'denim_heavy', name: { ja: 'デニム（厚地）', zh: '牛仔布（厚）' },
     fibers: ['cotton'], weaves: ['denim'], neRange: [4, 12], gsmRange: [320, 500], epiRange: [50, 80],
+    dyes: ['indigo','indigo_black','natural_indigo'],
     desc: { ja: '厚手の3/1ツイル。10oz以上のジーンズ用', zh: '厚3/1斜纹，10盎司以上牛仔裤用' } },
   { id: 'denim_medium', name: { ja: 'デニム（中厚）', zh: '牛仔布（中厚）' },
     fibers: ['cotton'], weaves: ['denim'], neRange: [10, 20], gsmRange: [220, 340], epiRange: [60, 90],
+    dyes: ['indigo','indigo_black','natural_indigo'],
     desc: { ja: '中厚のデニム。8oz前後のシャツデニムにも', zh: '中厚牛仔布，8盎司左右也可作衬衫' } },
   { id: 'denim_light', name: { ja: 'デニム（薄地）', zh: '牛仔布（薄）' },
     fibers: ['cotton'], weaves: ['denim'], neRange: [16, 40], gsmRange: [120, 240], epiRange: [70, 110],
+    dyes: ['indigo','indigo_black','natural_indigo'],
     desc: { ja: '薄手のデニム。6oz以下のワンピースやシャツに', zh: '薄牛仔布，6盎司以下连衣裙和衬衫用' } },
   { id: 'dungaree', name: { ja: 'ダンガリー', zh: '丹宁布' },
     fibers: ['cotton'], weaves: ['denim','twill_2_1'], neRange: [10, 30], gsmRange: [150, 280], epiRange: [60, 100],
+    dyes: ['indigo','indigo_black'],
     desc: { ja: '白経×色緯の綾織。デニムの逆配色', zh: '白经×色纬斜纹，牛仔布的反色' } },
   { id: 'drill', name: { ja: 'ドリル', zh: '斜纹布' },
     fibers: ['cotton'], weaves: ['twill_2_1','twill_2_2'], neRange: [10, 24], gsmRange: [200, 360], epiRange: [70, 110],
@@ -1086,6 +1090,7 @@ const FABRIC_NAME_DB = [
     desc: { ja: 'テンセルの平織。ドレープ性と光沢', zh: '天丝平纹，有悬垂性和光泽' } },
   { id: 'tencel_denim', name: { ja: 'テンセルデニム', zh: '天丝牛仔' },
     fibers: ['lyocell','cotton'], weaves: ['denim'], neRange: [10,24], gsmRange: [180,300], epiRange: [60,100],
+    dyes: ['indigo','reactive_vs'],
     desc: { ja: 'テンセル混のソフトデニム', zh: '天丝混纺柔软牛仔布' }, isBlend: true },
 
   // ═══════ 追加: 日本産地系 ═══════
@@ -1257,9 +1262,11 @@ const FABRIC_NAME_DB = [
   // ═══════ 追加: デニム追加 ═══════
   { id: 'selvedge_denim', name: { ja: 'セルビッチデニム', zh: '红耳牛仔' },
     fibers: ['cotton'], weaves: ['denim'], neRange: [6,12], gsmRange: [300,500], epiRange: [50,90],
+    dyes: ['indigo','natural_indigo'],
     desc: { ja: '旧式力織機の耳付きデニム。ヴィンテージ感', zh: '旧式力织机有耳牛仔布，复古感' } },
   { id: 'stretch_denim', name: { ja: 'ストレッチデニム', zh: '弹力牛仔' },
     fibers: ['cotton','polyester'], weaves: ['denim'], neRange: [6,16], gsmRange: [200,400], epiRange: [50,90],
+    dyes: ['indigo','indigo_black'],
     desc: { ja: 'ポリウレタン入りの伸縮デニム', zh: '含氨纶的弹力牛仔布' }, isBlend: true },
   { id: 'chambray', name: { ja: 'シャンブレー', zh: '色织平纹' },
     fibers: ['cotton'], weaves: ['plain'], neRange: [20,50], gsmRange: [80,180], epiRange: [50,100],
@@ -1437,6 +1444,34 @@ function identifyFabric(config) {
       matchDetail.push('epi:in');
     }
 
+    // --- 6. 染料マッチ (最大15点) ---
+    // fabric.dyes が定義されている場合、使用染料との一致でスコア加減
+    if (fabric.dyes && fabric.dyes.length > 0) {
+      maxScore += 15;
+      const warpDyeId = config.warpDye || 'reactive_vs';
+      const weftDyeId = config.weftDye || 'reactive_vs';
+      const warpDyeObj = getDye(warpDyeId);
+      const weftDyeObj = getDye(weftDyeId);
+      // 経糸または緯糸の染料がfabricの推奨染料に含まれるか
+      const warpDyeMatch = fabric.dyes.includes(warpDyeId);
+      const weftDyeMatch = fabric.dyes.includes(weftDyeId);
+      // 染料タイプの一致もチェック（同タイプなら部分一致）
+      const warpTypeMatch = warpDyeObj && fabric.dyes.some(did => { const d = getDye(did); return d && d.type === warpDyeObj.type; });
+      const weftTypeMatch = weftDyeObj && fabric.dyes.some(did => { const d = getDye(did); return d && d.type === weftDyeObj.type; });
+      if (warpDyeMatch || weftDyeMatch) {
+        const dyeScore = (warpDyeMatch ? 8 : 0) + (weftDyeMatch ? 7 : 0);
+        score += dyeScore;
+        matchDetail.push('dye:exact');
+      } else if (warpTypeMatch || weftTypeMatch) {
+        score += 5;
+        matchDetail.push('dye:type');
+      } else {
+        // 染料が全く異なる場合、デニム等のスコアを抑制
+        score -= 10;
+        matchDetail.push('dye:miss');
+      }
+    }
+
     // スコアを正規化 (0-100%)
     const confidence = Math.round((score / maxScore) * 100);
 
@@ -1486,6 +1521,184 @@ function identifyFabric(config) {
     topName: top ? top.name : null,
     topConfidence: top ? top.confidence : 0
   };
+}
+
+// ============================================================
+// 染料データベース (DYESTUFF_DB)
+// ============================================================
+const DYESTUFF_DB = [
+  // ── 反応染料 (Reactive Dyes) ────────────────────────────
+  { id: 'reactive_vs', name: { ja: '反応染料（ビニルスルホン型）', zh: '活性染料（乙烯砜型）' },
+    type: 'reactive', subtype: 'vinyl_sulfone',
+    applicableFibers: ['cotton','linen','ramie','viscose','lyocell','modal','cupro'],
+    washFastness: 5, lightFastness: 4, rubFastness: 5, perspFastness: 5,
+    fadingChar: 'none', colorRange: 'wide',
+    costFactor: 1.0,
+    colors: { ja: '全色域（鮮明色に優れる）', zh: '全色域（鲜艳色优良）' },
+    desc: { ja: 'セルロース繊維用の最も一般的な先染め染料。堅牢度が高く、先染めシャツ地・ドレスシャツに最適。ビニルスルホン型は湿潤堅牢度に優れる。', zh: '纤维素纤维最常用的色织染料。牢度高，最适合色织衬衫面料。乙烯砜型湿牢度优良。' }
+  },
+  { id: 'reactive_mct', name: { ja: '反応染料（MCT型）', zh: '活性染料（MCT型）' },
+    type: 'reactive', subtype: 'mct',
+    applicableFibers: ['cotton','linen','ramie','viscose','lyocell','modal','cupro'],
+    washFastness: 5, lightFastness: 5, rubFastness: 4, perspFastness: 5,
+    fadingChar: 'none', colorRange: 'wide',
+    costFactor: 1.1,
+    colors: { ja: '全色域（耐光性に優れる）', zh: '全色域（耐光性优良）' },
+    desc: { ja: 'モノクロロトリアジン型。耐光堅牢度が特に高く、カーテン生地やアウターにも適する。', zh: '一氯均三嗪型。耐光牢度特别高，也适用于窗帘面料和外套。' }
+  },
+  { id: 'reactive_bifunc', name: { ja: '反応染料（二官能型）', zh: '活性染料（双活性基型）' },
+    type: 'reactive', subtype: 'bifunctional',
+    applicableFibers: ['cotton','linen','ramie','viscose','lyocell','modal','cupro'],
+    washFastness: 5, lightFastness: 5, rubFastness: 5, perspFastness: 5,
+    fadingChar: 'none', colorRange: 'wide',
+    costFactor: 1.3,
+    colors: { ja: '全色域（最高堅牢度）', zh: '全色域（最高牢度）' },
+    desc: { ja: '2つの反応基を持つ高級反応染料。すべての堅牢度が最高レベル。高品質先染めシャツ地の標準。', zh: '具有两个活性基的高级活性染料。所有牢度均为最高水平。高品质色织衬衫面料的标准。' }
+  },
+
+  // ── 建染染料 / インディゴ (Vat Dyes / Indigo) ──────────────
+  { id: 'indigo', name: { ja: 'インディゴ（合成藍）', zh: '靛蓝（合成靛蓝）' },
+    type: 'vat', subtype: 'indigo',
+    applicableFibers: ['cotton','linen','ramie'],
+    washFastness: 2, lightFastness: 4, rubFastness: 1, perspFastness: 3,
+    fadingChar: 'dramatic', colorRange: 'narrow',
+    costFactor: 0.8,
+    colors: { ja: '藍色系のみ（濃紺〜淡藍）', zh: '蓝色系（深蓝〜浅蓝）' },
+    desc: { ja: 'デニムの代名詞。繊維表面にのみ付着し、摩擦・洗濯で独特の色落ち（エイジング）を生む。ロープ染色が主流。Vat Blue 1。', zh: '牛仔布的代名词。仅附着在纤维表面，通过摩擦和洗涤产生独特的褪色效果。绳索染色为主。Vat Blue 1。' }
+  },
+  { id: 'indigo_black', name: { ja: 'インディゴブラック', zh: '靛蓝黑' },
+    type: 'vat', subtype: 'indigo_black',
+    applicableFibers: ['cotton','linen'],
+    washFastness: 2, lightFastness: 3, rubFastness: 1, perspFastness: 3,
+    fadingChar: 'dramatic', colorRange: 'narrow',
+    costFactor: 1.0,
+    colors: { ja: '黒〜チャコール（インディゴ+硫化黒の重ね染め）', zh: '黑〜炭灰（靛蓝+硫化黑双层染色）' },
+    desc: { ja: 'インディゴの上に硫化黒を重ねた二重染色。黒デニム・ブラックジーンズに使用。色落ちするとインディゴの青が出る。', zh: '在靛蓝上层叠硫化黑的双重染色。用于黑色牛仔布。褪色后靛蓝的蓝色会显现。' }
+  },
+  { id: 'vat_other', name: { ja: 'スレン染料（建染染料）', zh: '还原染料（士林染料）' },
+    type: 'vat', subtype: 'general',
+    applicableFibers: ['cotton','linen','ramie','viscose'],
+    washFastness: 5, lightFastness: 5, rubFastness: 4, perspFastness: 5,
+    fadingChar: 'minimal', colorRange: 'medium',
+    costFactor: 1.5,
+    colors: { ja: '限定色域（カーキ・紺・茶系が得意）', zh: '有限色域（卡其・藏蓝・棕色系为主）' },
+    desc: { ja: '最高級の堅牢度を持つ建染染料（インディゴ以外）。ワークウェア、ミリタリー、高耐光カーテン地に使用。コストが高い。', zh: '具有最高牢度的还原染料（靛蓝以外）。用于工作服、军用面料、高耐光窗帘面料。成本较高。' }
+  },
+
+  // ── 硫化染料 (Sulfur Dyes) ──────────────────────────────
+  { id: 'sulfur_black', name: { ja: '硫化染料（黒）', zh: '硫化染料（黑）' },
+    type: 'sulfur', subtype: 'black',
+    applicableFibers: ['cotton','viscose','linen'],
+    washFastness: 4, lightFastness: 3, rubFastness: 3, perspFastness: 3,
+    fadingChar: 'gradual', colorRange: 'narrow',
+    costFactor: 0.5,
+    colors: { ja: '黒・濃色系（黒が最も経済的）', zh: '黑色・深色系（黑色最经济）' },
+    desc: { ja: '最も安価な黒染め。作業服・カジュアルに多用。長期使用で赤味を帯びた褪色（赤茶け）が特徴。', zh: '最便宜的黑色染色。多用于工作服・休闲服。长期使用后带红褐色褪色为特征。' }
+  },
+  { id: 'sulfur_color', name: { ja: '硫化染料（カラー）', zh: '硫化染料（彩色）' },
+    type: 'sulfur', subtype: 'color',
+    applicableFibers: ['cotton','viscose','linen'],
+    washFastness: 3, lightFastness: 3, rubFastness: 3, perspFastness: 3,
+    fadingChar: 'gradual', colorRange: 'medium',
+    costFactor: 0.6,
+    colors: { ja: 'カーキ・紺・茶・オリーブ等', zh: '卡其・藏蓝・棕・橄榄等' },
+    desc: { ja: '中間色の濃色向き。チノクロス、ミリタリー生地に多い。洗濯で徐々に味が出る。', zh: '适合中间色深色。多用于卡其布、军用面料。洗涤后逐渐产生味道。' }
+  },
+
+  // ── 直接染料 (Direct Dyes) ──────────────────────────────
+  { id: 'direct', name: { ja: '直接染料', zh: '直接染料' },
+    type: 'direct', subtype: 'general',
+    applicableFibers: ['cotton','viscose','linen','ramie','cupro'],
+    washFastness: 2, lightFastness: 3, rubFastness: 3, perspFastness: 2,
+    fadingChar: 'gradual', colorRange: 'wide',
+    costFactor: 0.4,
+    colors: { ja: '広色域だが鮮明度はやや劣る', zh: '色域广但鲜艳度稍逊' },
+    desc: { ja: '最も安価で簡便。水洗い堅牢度が低いため先染め高級品には不向き。裏地や低コスト品向き。フィクサー処理で改善可能。', zh: '最便宜且简便。耐水洗牢度低，不适合高级色织产品。适用于里布和低成本产品。可通过固色处理改善。' }
+  },
+
+  // ── 酸性染料 (Acid Dyes) ─────────────────────────────────
+  { id: 'acid_leveling', name: { ja: '酸性染料（均染型）', zh: '酸性染料（匀染型）' },
+    type: 'acid', subtype: 'leveling',
+    applicableFibers: ['wool','silk','nylon','cashmere'],
+    washFastness: 3, lightFastness: 4, rubFastness: 4, perspFastness: 3,
+    fadingChar: 'minimal', colorRange: 'wide',
+    costFactor: 1.0,
+    colors: { ja: '極めて広い色域（鮮明色に強い）', zh: '极广色域（鲜艳色优良）' },
+    desc: { ja: 'ウール・シルク・ナイロン用。均一な染色が得意で、先染め毛織物に標準的に使用。', zh: '用于毛・丝・尼龙。均匀染色为特长，标准用于色织毛织物。' }
+  },
+  { id: 'acid_milling', name: { ja: '酸性染料（ミリング型）', zh: '酸性染料（缩绒型）' },
+    type: 'acid', subtype: 'milling',
+    applicableFibers: ['wool','silk','nylon','cashmere'],
+    washFastness: 4, lightFastness: 4, rubFastness: 4, perspFastness: 4,
+    fadingChar: 'none', colorRange: 'medium',
+    costFactor: 1.2,
+    colors: { ja: 'やや制限あるが濃色に強い', zh: '稍有限制但深色优良' },
+    desc: { ja: '湿潤堅牢度が高い酸性染料。縮絨加工に耐える。高級ツイード・フランネルに使用。', zh: '湿牢度高的酸性染料。耐缩绒加工。用于高级粗花呢・法兰绒。' }
+  },
+
+  // ── 分散染料 (Disperse Dyes) ─────────────────────────────
+  { id: 'disperse_standard', name: { ja: '分散染料（標準型）', zh: '分散染料（标准型）' },
+    type: 'disperse', subtype: 'standard',
+    applicableFibers: ['polyester','nylon','acrylic','ptt','pbt'],
+    washFastness: 5, lightFastness: 4, rubFastness: 4, perspFastness: 4,
+    fadingChar: 'none', colorRange: 'wide',
+    costFactor: 0.8,
+    colors: { ja: '全色域', zh: '全色域' },
+    desc: { ja: 'ポリエステル繊維の標準染料。高温高圧染色（130℃）で繊維内部に浸透。堅牢度良好。', zh: '聚酯纤维的标准染料。高温高压染色（130℃）渗透纤维内部。牢度良好。' }
+  },
+  { id: 'disperse_sublimation', name: { ja: '分散染料（昇華型）', zh: '分散染料（升华型）' },
+    type: 'disperse', subtype: 'sublimation',
+    applicableFibers: ['polyester','ptt','pbt'],
+    washFastness: 4, lightFastness: 3, rubFastness: 4, perspFastness: 3,
+    fadingChar: 'minimal', colorRange: 'wide',
+    costFactor: 0.7,
+    colors: { ja: '全色域（熱転写に対応）', zh: '全色域（适合热转印）' },
+    desc: { ja: '昇華転写プリント用の低エネルギー型。先染め後の後加工での熱移行に注意が必要。', zh: '用于升华转印的低能量型。先染后后加工时需注意热迁移。' }
+  },
+
+  // ── 天然染料 (Natural Dyes) ──────────────────────────────
+  { id: 'natural_indigo', name: { ja: '天然藍（本藍）', zh: '天然蓝（本蓝）' },
+    type: 'natural', subtype: 'indigo',
+    applicableFibers: ['cotton','linen','silk','wool','ramie'],
+    washFastness: 2, lightFastness: 3, rubFastness: 1, perspFastness: 3,
+    fadingChar: 'dramatic', colorRange: 'narrow',
+    costFactor: 5.0,
+    colors: { ja: '藍色のみ（深縹〜水浅葱）', zh: '蓝色（深蓝〜浅蓝）' },
+    desc: { ja: '蓼藍・琉球藍から抽出した天然インディゴ。合成品より深みのある色合い。日本の伝統的な先染め。抗菌・防虫効果あり。', zh: '从蓼蓝・琉球蓝提取的天然靛蓝。比合成品色调更深沉。日本传统色织。具有抗菌・防虫效果。' }
+  },
+  { id: 'natural_kakishibu', name: { ja: '柿渋染め', zh: '柿涩染' },
+    type: 'natural', subtype: 'tannin',
+    applicableFibers: ['cotton','linen','ramie','silk'],
+    washFastness: 3, lightFastness: 3, rubFastness: 3, perspFastness: 3,
+    fadingChar: 'gradual', colorRange: 'narrow',
+    costFactor: 4.0,
+    colors: { ja: '茶褐色系（日光で経年変化）', zh: '茶褐色系（日晒后经年变化）' },
+    desc: { ja: '柿の渋液による染色。紫外線で色が深まる経年変化が魅力。防腐・防水効果。和装・アート系テキスタイルに。', zh: '柿子涩液染色。紫外线照射后颜色加深的经年变化很有魅力。防腐・防水效果。用于和服・艺术纺织品。' }
+  },
+  { id: 'natural_plant', name: { ja: '草木染め（植物染料）', zh: '植物染' },
+    type: 'natural', subtype: 'plant',
+    applicableFibers: ['cotton','linen','silk','wool','ramie'],
+    washFastness: 2, lightFastness: 2, rubFastness: 2, perspFastness: 2,
+    fadingChar: 'gradual', colorRange: 'medium',
+    costFactor: 4.5,
+    colors: { ja: '茜・紫根・桜・ウコン等（媒染で変化）', zh: '茜草・紫根・樱花・郁金等（媒染后变化）' },
+    desc: { ja: '天然植物を原料とし媒染剤で発色。環境配慮素材として注目。堅牢度は低めだが独特の自然な風合い。', zh: '以天然植物为原料通过媒染发色。作为环保素材受关注。牢度较低但具有独特自然风格。' }
+  },
+];
+
+// 染料ヘルパー関数
+function getDye(id) { return DYESTUFF_DB.find(d => d.id === id); }
+function getDyesForFiber(fiberId) {
+  return DYESTUFF_DB.filter(d => d.applicableFibers.includes(fiberId));
+}
+function getMainFiber(yarn) {
+  if (!yarn || !yarn.comp) return null;
+  return yarn.comp.reduce((max, c) => c.p > (max?.p || 0) ? c : max, null)?.f;
+}
+function getApplicableDyes(yarn) {
+  const mainFiber = getMainFiber(yarn);
+  if (!mainFiber) return DYESTUFF_DB;
+  return DYESTUFF_DB.filter(d => d.applicableFibers.includes(mainFiber));
 }
 
 // ============================================================
@@ -1665,6 +1878,28 @@ const LANG = {
     swatchDeleted: '削除しました',
     swatchPhotoHint: 'タップして写真を追加',
     swatchClose: '閉じる',
+    // 染料
+    dyeType: '染料タイプ',
+    dyeSelect: '染料を選択',
+    dyeWarp: '経糸染料',
+    dyeWeft: '緯糸染料',
+    washFastness: '耐洗濯',
+    lightFastness: '耐光',
+    rubFastness: '耐摩擦',
+    perspFastness: '耐汗',
+    fadingChar: '色落ち特性',
+    fadingNone: 'なし',
+    fadingMinimal: 'わずか',
+    fadingGradual: '徐々に変化',
+    fadingDramatic: '劇的な経年変化',
+    colorRange: '染色可能色域',
+    dyeApplicable: '使用可能繊維',
+    dyeCost: 'コスト',
+    dyeInfo: '染料特性',
+    dyeTypes: {
+      reactive: '反応染料', vat: '建染染料（インディゴ等）', sulfur: '硫化染料',
+      direct: '直接染料', acid: '酸性染料', disperse: '分散染料', natural: '天然染料'
+    },
   },
   zh: {
     title: '色织模拟器 V3',
@@ -1839,6 +2074,28 @@ const LANG = {
     swatchDeleted: '已删除',
     swatchPhotoHint: '点击添加照片',
     swatchClose: '关闭',
+    // 染料
+    dyeType: '染料类型',
+    dyeSelect: '选择染料',
+    dyeWarp: '经纱染料',
+    dyeWeft: '纬纱染料',
+    washFastness: '耐水洗',
+    lightFastness: '耐光',
+    rubFastness: '耐摩擦',
+    perspFastness: '耐汗',
+    fadingChar: '褪色特性',
+    fadingNone: '无',
+    fadingMinimal: '极微',
+    fadingGradual: '逐渐变化',
+    fadingDramatic: '显著经年变化',
+    colorRange: '可染色域',
+    dyeApplicable: '适用纤维',
+    dyeCost: '成本',
+    dyeInfo: '染料特性',
+    dyeTypes: {
+      reactive: '活性染料', vat: '还原染料（靛蓝等）', sulfur: '硫化染料',
+      direct: '直接染料', acid: '酸性染料', disperse: '分散染料', natural: '天然染料'
+    },
   }
 };
 
@@ -2548,7 +2805,11 @@ function calcCost(config) {
   // 工賃（組織難度で補正）
   const diffMultiplier = 1 + (weave.diff - 1) * 0.15;
   const weavingCost = (config.costWeavingPerM || 1.5) * diffMultiplier;
-  const dyeingCost = config.costDyeingPerM || 0.8;
+  // 染料コストファクターで染色費を補正
+  const warpDyeObj = getDye(config.warpDye);
+  const weftDyeObj = getDye(config.weftDye);
+  const avgDyeCostFactor = ((warpDyeObj?.costFactor || 1.0) + (weftDyeObj?.costFactor || 1.0)) / 2;
+  const dyeingCost = (config.costDyeingPerM || 0.8) * avgDyeCostFactor;
   const finishingCost = config.costFinishingPerM || 0.5;
 
   const totalCostPerM = yarnCostPerM + weavingCost + dyeingCost + finishingCost;
@@ -2564,6 +2825,7 @@ function calcCost(config) {
     yarnCostPerM: yarnCostPerM.toFixed(2),
     weavingCost: weavingCost.toFixed(2),
     dyeingCost: dyeingCost.toFixed(2),
+    dyeCostFactor: avgDyeCostFactor.toFixed(2),
     finishingCost: finishingCost.toFixed(2),
     totalCostPerM: totalCostPerM.toFixed(2),
     totalCostPerYd: totalCostPerYd.toFixed(2),
@@ -2925,6 +3187,8 @@ let state = {
   yarnCat: 'cotton',
   warpYarnCat: 'cotton',
   weftYarnCat: 'cotton',
+  warpDye: 'reactive_vs',
+  weftDye: 'reactive_vs',
   pitch: 28,
   zoom: 1,
   epi: 100,
@@ -3360,6 +3624,36 @@ function renderYarn(L, warpYarn, weftYarn) {
   const warpFiltered = YARN_DB.filter(y => y.cat === state.warpYarnCat);
   const weftFiltered = YARN_DB.filter(y => y.cat === state.weftYarnCat);
   const physics = calcPhysicsInfo(state);
+  const warpDyes = warpYarn ? getApplicableDyes(warpYarn) : DYESTUFF_DB;
+  const weftDyes = weftYarn ? getApplicableDyes(weftYarn) : DYESTUFF_DB;
+  const warpDye = getDye(state.warpDye);
+  const weftDye = getDye(state.weftDye);
+  const fadingLabel = (fc) => L['fading' + fc.charAt(0).toUpperCase() + fc.slice(1)] || fc;
+  const starBar = (val, max) => {
+    let s = '';
+    for (let i = 1; i <= max; i++) s += i <= val ? '★' : '☆';
+    return s;
+  };
+  const dyeInfoHtml = (dye) => {
+    if (!dye) return '';
+    return `
+      <div class="info-card mt-2" style="padding:10px 12px">
+        <div class="text-xs font-medium text-white mb-1.5">${L.dyeInfo}</div>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+          <div><span class="text-slate-500">${L.washFastness}:</span> <span class="text-amber-300">${starBar(dye.washFastness, 5)}</span></div>
+          <div><span class="text-slate-500">${L.lightFastness}:</span> <span class="text-amber-300">${starBar(dye.lightFastness, 5)}</span></div>
+          <div><span class="text-slate-500">${L.rubFastness}:</span> <span class="text-amber-300">${starBar(dye.rubFastness, 5)}</span></div>
+          <div><span class="text-slate-500">${L.perspFastness}:</span> <span class="text-amber-300">${starBar(dye.perspFastness, 5)}</span></div>
+        </div>
+        <div class="mt-1.5 text-xs">
+          <span class="text-slate-500">${L.fadingChar}:</span>
+          <span class="${dye.fadingChar === 'dramatic' ? 'text-red-400 font-bold' : dye.fadingChar === 'gradual' ? 'text-amber-400' : 'text-emerald-400'}">${fadingLabel(dye.fadingChar)}</span>
+        </div>
+        <div class="mt-1 text-xs"><span class="text-slate-500">${L.colorRange}:</span> <span class="text-slate-300">${dye.colors[state.lang]}</span></div>
+        <div class="mt-1.5 text-xs text-slate-400 leading-relaxed">${dye.desc[state.lang]}</div>
+      </div>
+    `;
+  };
 
   return `
     <!-- 経糸セクション -->
@@ -3386,6 +3680,14 @@ function renderYarn(L, warpYarn, weftYarn) {
           <div class="mt-2 text-xs text-slate-400">${L.yarnTwist || '撚り'}: <span class="font-medium text-slate-200">${L.twistValues?.[warpYarn.twist] || warpYarn.twist || 'normal'}</span></div>
         </div>
       ` : ''}
+      <!-- 経糸染料 -->
+      <div>
+        <label class="block text-xs font-medium mb-1.5 text-slate-400">🎨 ${L.dyeWarp}</label>
+        <select onchange="setState({warpDye:this.value})" class="w-full p-2 rounded-lg text-sm">
+          ${warpDyes.map(d => `<option value="${d.id}" ${state.warpDye===d.id?'selected':''}>${d.name[state.lang]}</option>`).join('')}
+        </select>
+        ${dyeInfoHtml(warpDye)}
+      </div>
     </div>
 
     <!-- 緯糸セクション -->
@@ -3412,6 +3714,14 @@ function renderYarn(L, warpYarn, weftYarn) {
           <div class="mt-2 text-xs text-slate-400">${L.yarnTwist || '撚り'}: <span class="font-medium text-slate-200">${L.twistValues?.[weftYarn.twist] || weftYarn.twist || 'normal'}</span></div>
         </div>
       ` : ''}
+      <!-- 緯糸染料 -->
+      <div>
+        <label class="block text-xs font-medium mb-1.5 text-slate-400">🎨 ${L.dyeWeft}</label>
+        <select onchange="setState({weftDye:this.value})" class="w-full p-2 rounded-lg text-sm">
+          ${weftDyes.map(d => `<option value="${d.id}" ${state.weftDye===d.id?'selected':''}>${d.name[state.lang]}</option>`).join('')}
+        </select>
+        ${dyeInfoHtml(weftDye)}
+      </div>
     </div>
   `;
 }
@@ -3963,7 +4273,7 @@ function renderCostModal(L) {
                 <tr class="border-b border-slate-700/50"><td class="py-1.5 text-slate-400">${state.lang==='ja'?'緯糸コスト':'纬纱费用'}</td><td class="py-1.5 text-right">$${cost.weftCostPerM}/m</td></tr>
                 <tr class="border-b border-slate-700/50"><td class="py-1.5 text-slate-400">${L.totalYarnCost}</td><td class="py-1.5 text-right font-medium">$${cost.yarnCostPerM}/m</td></tr>
                 <tr class="border-b border-slate-700/50"><td class="py-1.5 text-slate-400">${L.weavingCost}</td><td class="py-1.5 text-right">$${cost.weavingCost}/m</td></tr>
-                <tr class="border-b border-slate-700/50"><td class="py-1.5 text-slate-400">${L.dyeingCost}</td><td class="py-1.5 text-right">$${cost.dyeingCost}/m</td></tr>
+                <tr class="border-b border-slate-700/50"><td class="py-1.5 text-slate-400">${L.dyeingCost}</td><td class="py-1.5 text-right">$${cost.dyeingCost}/m <span class="text-xs text-slate-500">(×${cost.dyeCostFactor})</span></td></tr>
                 <tr class="border-b border-slate-700/50"><td class="py-1.5 text-slate-400">${L.finishingCost}</td><td class="py-1.5 text-right">$${cost.finishingCost}/m</td></tr>
               </table>
             </div>
