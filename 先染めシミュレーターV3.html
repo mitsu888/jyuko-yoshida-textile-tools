@@ -13,32 +13,33 @@
     * { box-sizing: border-box; }
     body {
       font-family: 'Inter', 'Noto Sans JP', 'Noto Sans SC', -apple-system, sans-serif;
-      background: #fafafa;
+      background: #eef1f3;
       min-height: 100vh;
-      color: #1e293b;
+      color: #1e2a33;
     }
-    /* 背景のファブリックパターン（ライト版） */
+    /* 背景のファブリックパターン（スカンジナビア版） */
     body::before {
       content: '';
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      opacity: 0.04;
+      opacity: 0.025;
       background-image:
-        repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(0,0,0,0.15) 14px, rgba(0,0,0,0.15) 15px),
-        repeating-linear-gradient(90deg, transparent, transparent 14px, rgba(0,0,0,0.15) 14px, rgba(0,0,0,0.15) 15px);
+        repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(30,42,51,0.12) 14px, rgba(30,42,51,0.12) 15px),
+        repeating-linear-gradient(90deg, transparent, transparent 14px, rgba(30,42,51,0.12) 14px, rgba(30,42,51,0.12) 15px);
     }
     /* カード */
     .glass {
       background: #ffffff;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03);
+      border: none;
+      box-shadow: 0 1px 4px rgba(30,42,51,0.04);
+      border-radius: 20px;
     }
     .glass-light {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
+      background: #f8fafb;
+      border: 1px solid #e8ecf0;
     }
     /* ヘッダーアクセント */
     .header-accent {
-      background: linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa);
+      background: linear-gradient(90deg, #5b8a9a, #6b9aaa, #5b8a9a);
       background-size: 200% auto;
       animation: shimmer 3s linear infinite;
     }
@@ -48,154 +49,162 @@
     }
     /* ボタンスタイル */
     .btn-primary {
-      background: linear-gradient(135deg, #6366f1, #7c3aed);
+      background: #5b8a9a;
       color: white;
       transition: all 0.2s ease;
-      box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
+      box-shadow: 0 2px 8px rgba(91,138,154,0.3);
     }
     .btn-primary:hover {
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+      background: #4d7a8a;
+      box-shadow: 0 4px 14px rgba(91,138,154,0.35);
       transform: translateY(-1px);
     }
     .btn-ghost {
-      background: #f1f5f9;
-      color: #475569;
-      border: 1px solid #e2e8f0;
+      background: #f4f6f8;
+      color: #5a6d7a;
+      border: none;
       transition: all 0.2s ease;
     }
     .btn-ghost:hover {
-      background: #e2e8f0;
-      color: #1e293b;
-      border-color: #cbd5e1;
+      background: #e8ecf0;
+      color: #1e2a33;
     }
     .btn-ghost.active {
-      background: linear-gradient(135deg, #6366f1, #7c3aed);
+      background: #5b8a9a;
       color: white;
       border-color: transparent;
-      box-shadow: 0 1px 4px rgba(99, 102, 241, 0.3);
+      box-shadow: 0 2px 8px rgba(91,138,154,0.2);
     }
     /* 経糸用ボタン（グリーン系） */
     .btn-warp {
-      background: #f0fdf4;
-      color: #166534;
-      border: 1px solid #bbf7d0;
+      background: #f0f5f3;
+      color: #4a7c59;
+      border: none;
       transition: all 0.2s ease;
     }
     .btn-warp:hover {
-      background: #dcfce7;
-      color: #14532d;
-      border-color: #86efac;
+      background: #e0ebe4;
+      color: #3a6c49;
     }
     .btn-warp.active {
-      background: linear-gradient(135deg, #16a34a, #15803d);
+      background: #4a7c59;
       color: white;
       border-color: transparent;
-      box-shadow: 0 1px 4px rgba(22, 163, 74, 0.35);
+      box-shadow: 0 2px 8px rgba(74,124,89,0.25);
     }
     /* 緯糸用ボタン（ブルー系） */
     .btn-weft {
-      background: #eff6ff;
-      color: #1e40af;
-      border: 1px solid #bfdbfe;
+      background: #f0f3f7;
+      color: #5b8a9a;
+      border: none;
       transition: all 0.2s ease;
     }
     .btn-weft:hover {
-      background: #dbeafe;
-      color: #1e3a8a;
-      border-color: #93c5fd;
+      background: #e0e8f0;
+      color: #4d7a8a;
     }
     .btn-weft.active {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      background: #5b8a9a;
       color: white;
       border-color: transparent;
-      box-shadow: 0 1px 4px rgba(37, 99, 235, 0.35);
+      box-shadow: 0 2px 8px rgba(91,138,154,0.25);
     }
     /* 経糸セクション枠 */
     .section-warp {
-      border: 1.5px solid #bbf7d0;
-      background: linear-gradient(135deg, rgba(240,253,244,0.5), rgba(255,255,255,0.8));
+      border: none;
+      background: #f0f5f3;
+      border-radius: 14px;
     }
     /* 緯糸セクション枠 */
     .section-weft {
-      border: 1.5px solid #bfdbfe;
-      background: linear-gradient(135deg, rgba(239,246,255,0.5), rgba(255,255,255,0.8));
+      border: none;
+      background: #f0f3f7;
+      border-radius: 14px;
     }
     /* 経糸用セレクト */
-    select.select-warp { border-color: #86efac; }
-    select.select-warp:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+    select.select-warp { border-color: #b0d0b8; }
+    select.select-warp:focus { border-color: #4a7c59; box-shadow: 0 0 0 3px rgba(74,124,89,0.12); }
     /* 緯糸用セレクト */
-    select.select-weft { border-color: #93c5fd; }
-    select.select-weft:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+    select.select-weft { border-color: #b0c8d4; }
+    select.select-weft:focus { border-color: #5b8a9a; box-shadow: 0 0 0 3px rgba(91,138,154,0.12); }
     /* 経糸用レンジスライダー */
     input[type="range"].range-warp::-webkit-slider-thumb {
-      background: linear-gradient(135deg, #16a34a, #15803d);
-      box-shadow: 0 1px 4px rgba(22,163,74,0.35);
+      background: #4a7c59;
+      box-shadow: 0 2px 8px rgba(74,124,89,0.3);
+      border: 3px solid #fff;
     }
     /* 緯糸用レンジスライダー */
     input[type="range"].range-weft::-webkit-slider-thumb {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      box-shadow: 0 1px 4px rgba(37,99,235,0.35);
+      background: #5b8a9a;
+      box-shadow: 0 2px 8px rgba(91,138,154,0.3);
+      border: 3px solid #fff;
     }
     /* タブ */
     .tab-bar {
       background: #ffffff;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      border: none;
+      box-shadow: 0 1px 4px rgba(30,42,51,0.04);
+      border-radius: 16px;
+      overflow: hidden;
     }
     .tab-item {
-      color: #64748b;
-      transition: all 0.25s ease;
+      color: #8a9baa;
+      transition: all 0.2s ease;
       position: relative;
+      border-bottom: 3px solid transparent;
     }
-    .tab-item:hover { color: #1e293b; }
+    .tab-item:hover { color: #5b8a9a; background: rgba(91,138,154,0.03); }
     .tab-item.active {
-      color: white;
-      background: linear-gradient(135deg, #6366f1, #7c3aed);
-      box-shadow: 0 1px 4px rgba(99, 102, 241, 0.3);
+      color: #5b8a9a;
+      font-weight: 700;
+      background: rgba(91,138,154,0.04);
+      border-bottom-color: #5b8a9a;
     }
     /* カラースウォッチ */
     .color-swatch {
       transition: all 0.15s ease;
-      border: 2px solid #e2e8f0;
+      border: 3px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
     .color-swatch:hover {
       transform: scale(1.2);
-      border-color: #6366f1;
-      box-shadow: 0 0 8px rgba(99,102,241,0.25);
+      border-color: #fff;
+      box-shadow: 0 4px 16px rgba(91,138,154,0.2);
     }
     /* インフォカード */
     .info-card {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
+      background: #f8fafb;
+      border: 1px solid #e8ecf0;
+      border-radius: 14px;
       padding: 12px;
     }
     /* セレクト */
     select {
       background: #ffffff;
-      color: #1e293b;
-      border: 1px solid #d1d5db;
+      color: #1e2a33;
+      border: 1px solid #d8dfe4;
     }
     select:focus {
       outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+      border-color: #5b8a9a;
+      box-shadow: 0 0 0 3px rgba(91,138,154,0.12);
     }
     /* レンジスライダー */
     input[type="range"] {
       -webkit-appearance: none;
       height: 6px;
-      background: #e2e8f0;
+      background: #e0e7ec;
       border-radius: 3px;
       outline: none;
     }
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 18px; height: 18px;
-      background: linear-gradient(135deg, #6366f1, #7c3aed);
+      width: 20px; height: 20px;
+      background: #5b8a9a;
       border-radius: 50%;
       cursor: pointer;
-      box-shadow: 0 1px 4px rgba(99, 102, 241, 0.35);
+      box-shadow: 0 2px 8px rgba(91,138,154,0.3);
+      border: 3px solid #fff;
     }
     /* インプットカラー */
     input[type="color"] {
@@ -204,32 +213,32 @@
       cursor: pointer;
     }
     input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-    input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
+    input[type="color"]::-webkit-color-swatch { border: none; border-radius: 10px; }
     /* number input */
     input[type="number"] {
       background: #ffffff;
-      color: #1e293b;
-      border: 1px solid #d1d5db;
+      color: #1e2a33;
+      border: 1px solid #d8dfe4;
     }
     input[type="number"]:focus {
       outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+      border-color: #5b8a9a;
+      box-shadow: 0 0 0 3px rgba(91,138,154,0.12);
     }
     /* スクロールバー */
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     .scrollbar-hide::-webkit-scrollbar { display: none; }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    ::-webkit-scrollbar-thumb { background: #c8d4dc; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #8a9baa; }
     /* ツールチップ */
     .tooltip { position: relative; }
     .tooltip:hover::after {
       content: attr(data-tip);
       position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
-      background: #1e293b;
-      color: #f1f5f9;
+      background: #1e2a33;
+      color: #f4f6f8;
       padding: 6px 12px;
       border-radius: 8px;
       font-size: 11px;
@@ -242,7 +251,7 @@
     .help-badge {
       display: inline-flex; align-items: center; justify-content: center;
       width: 16px; height: 16px; border-radius: 50%;
-      background: #e2e8f0; color: #64748b;
+      background: #e0e7ec; color: #8a9baa;
       font-size: 10px; font-weight: 700; line-height: 1;
       cursor: help; position: relative; vertical-align: middle;
       margin-left: 3px; flex-shrink: 0;
@@ -251,12 +260,12 @@
       user-select: none;
     }
     .help-badge:hover, .help-badge:focus {
-      background: #6366f1; color: #fff; outline: none;
+      background: #5b8a9a; color: #fff; outline: none;
     }
     .help-badge .help-popup {
       display: none; position: absolute; bottom: calc(100% + 6px); left: 50%;
       transform: translateX(-50%); min-width: 200px; max-width: 280px;
-      background: #1e293b; color: #f1f5f9;
+      background: #1e2a33; color: #f4f6f8;
       padding: 10px 14px; border-radius: 10px;
       font-size: 12px; font-weight: 400; line-height: 1.55;
       white-space: normal; z-index: 100; text-align: left;
@@ -266,7 +275,7 @@
     .help-badge .help-popup::after {
       content: ''; position: absolute; top: 100%; left: 50%;
       transform: translateX(-50%);
-      border: 6px solid transparent; border-top-color: #1e293b;
+      border: 6px solid transparent; border-top-color: #1e2a33;
     }
     .help-badge:hover .help-popup,
     .help-badge:focus .help-popup,
@@ -284,14 +293,15 @@
     }
     /* モーダル */
     .modal-overlay {
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(30, 42, 51, 0.2);
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
     }
     .modal-content {
       background: #ffffff;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06);
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(30,42,51,0.12), 0 4px 16px rgba(30,42,51,0.06);
     }
     /* 糸スレッド */
     .yarn-thread { filter: drop-shadow(0 1px 1px rgba(0,0,0,0.08)); }
@@ -308,21 +318,21 @@
       inset: -1px;
       border-radius: inherit;
       padding: 1px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6, #6366f1);
+      background: linear-gradient(135deg, #5b8a9a, #6b9aaa, #5b8a9a);
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
       -webkit-mask-composite: xor;
       mask-composite: exclude;
-      opacity: 0.3;
+      opacity: 0.2;
     }
     /* プリント */
     @media print { .no-print { display: none !important; } body { background: white; color: black; } }
     /* フッター */
     .footer-gradient {
-      background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.8) 100%);
+      background: linear-gradient(180deg, transparent 0%, rgba(30, 42, 51, 0.05) 100%);
     }
     /* ===== Improvement #5: アクセシビリティ ===== */
     :focus-visible {
-      outline: 2px solid #818cf8;
+      outline: 2px solid #5b8a9a;
       outline-offset: 2px;
     }
     .sr-only {
@@ -3531,12 +3541,12 @@ function render() {
       <div class="header-accent h-1 rounded-full mb-4"></div>
       <div class="flex items-center justify-between flex-wrap gap-3">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-600 to-cyan-700 flex items-center justify-center shadow-lg shadow-teal-600/20">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
           </div>
           <div>
-            <h1 class="text-xl font-bold tracking-tight text-white">${L.title}</h1>
-            <p class="text-xs text-slate-400 tracking-wide">${L.subtitle}</p>
+            <h1 class="text-xl font-bold tracking-tight text-slate-800">${L.title}</h1>
+            <p class="text-xs text-slate-500 tracking-wide">${L.subtitle}</p>
           </div>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
@@ -3676,7 +3686,7 @@ function renderDesign(L) {
     <div class="mt-3 p-3 glass-light rounded-xl">
       <div class="flex items-center justify-between mb-2">
         <label class="text-sm font-medium text-slate-600">${L.checkPreset}</label>
-        ${activePreset ? `<span class="text-xs px-2 py-0.5 bg-indigo-500/20 text-indigo-600 rounded-full border border-indigo-500/30">${activePreset.name[state.lang]}</span>` : ''}
+        ${activePreset ? `<span class="text-xs px-2 py-0.5 bg-teal-600/20 text-teal-700 rounded-full border border-teal-600/30">${activePreset.name[state.lang]}</span>` : ''}
       </div>
       <p class="text-xs text-slate-400 mb-2">${L.checkPresetHint}</p>
       <!-- カテゴリ横スクロールタブ -->
@@ -3690,10 +3700,10 @@ function renderDesign(L) {
       ${activeCat ? `
         <div class="grid grid-cols-1 gap-1.5 max-h-52 overflow-y-auto pr-1">
           ${filteredPatterns.map(p => `
-            <button onclick="applyCheckPreset('${p.id}')" class="flex items-center gap-2 px-2.5 py-2 rounded-lg border text-left text-xs transition-all ${state.checkPresetId === p.id ? 'bg-indigo-500/20 text-indigo-200 border-indigo-500/30' : 'btn-ghost hover:border-slate-300'}">
+            <button onclick="applyCheckPreset('${p.id}')" class="flex items-center gap-2 px-2.5 py-2 rounded-lg border text-left text-xs transition-all ${state.checkPresetId === p.id ? 'bg-teal-600/20 text-teal-200 border-teal-600/30' : 'btn-ghost hover:border-slate-300'}">
               <span class="flex gap-0.5 flex-shrink-0">${p.warpColors.slice(0,6).map(c => `<span class="inline-block w-3 h-3 rounded-sm border border-slate-200" style="background:${c}"></span>`).join('')}</span>
               <span class="font-medium flex-shrink-0">${p.name[state.lang]}</span>
-              <span class="truncate ${state.checkPresetId === p.id ? 'text-indigo-600' : 'text-slate-400'}">${p.desc[state.lang]}</span>
+              <span class="truncate ${state.checkPresetId === p.id ? 'text-teal-700' : 'text-slate-400'}">${p.desc[state.lang]}</span>
             </button>
           `).join('')}
         </div>
@@ -3711,10 +3721,10 @@ function renderDesign(L) {
     </div>
     ${renderColorMgr('warp', L.warpColor, state.warpColors, L)}
     <div class="flex justify-center gap-2">
-      <button onclick="setState({weftColors:[...state.warpColors]})" class="px-3 py-1.5 rounded-lg text-xs btn-ghost flex items-center gap-1.5 hover:text-indigo-600" title="${state.lang==='ja'?'経糸の配色を緯糸にコピー':'将经纱配色复制到纬纱'}">
+      <button onclick="setState({weftColors:[...state.warpColors]})" class="px-3 py-1.5 rounded-lg text-xs btn-ghost flex items-center gap-1.5 hover:text-teal-700" title="${state.lang==='ja'?'経糸の配色を緯糸にコピー':'将经纱配色复制到纬纱'}">
         <span>↓</span> ${state.lang==='ja'?'経→緯 配色コピー':'经→纬 复制配色'}
       </button>
-      <button onclick="setState({modal:'arrangement'})" class="px-3 py-1.5 rounded-lg text-xs btn-ghost flex items-center gap-1.5 hover:text-indigo-600">
+      <button onclick="setState({modal:'arrangement'})" class="px-3 py-1.5 rounded-lg text-xs btn-ghost flex items-center gap-1.5 hover:text-teal-700">
         <span>🧵</span> ${state.lang==='ja'?'配列本数':'排列本数'}
       </button>
     </div>
@@ -3770,7 +3780,7 @@ function renderWeaveButton(w, state, L) {
   const isActive = state.weaveId === w.id;
   return '<button onclick="setState({weaveId:\''+w.id+'\'})" class="p-2 rounded-lg text-left btn-ghost flex items-center gap-2 '+(isActive?'active':'')+'">'
     + '<svg viewBox="0 0 '+(sz*4)+' '+(sy*4)+'" class="w-8 h-8 flex-shrink-0 rounded border border-slate-200" style="background:#0f172a">'+svgCells+'</svg>'
-    + '<div><div class="font-medium text-xs">'+w.name[state.lang]+'</div><div class="text-xs '+(isActive?'text-indigo-600':'text-slate-400')+'">'+'★'.repeat(w.diff)+'</div></div>'
+    + '<div><div class="font-medium text-xs">'+w.name[state.lang]+'</div><div class="text-xs '+(isActive?'text-teal-700':'text-slate-400')+'">'+'★'.repeat(w.diff)+'</div></div>'
     + '</button>';
 }
 
@@ -3909,7 +3919,7 @@ function renderYarn(L, warpYarn, weftYarn) {
 
 function renderSpecs(L, weave, warpYarn, weftYarn, gsm, physics, season, similar, fabricId) {
   const seasonLabel = season === 'ss' ? L.springSum : season === 'aw' ? L.autumnWin : L.allSeason;
-  const seasonColor = season === 'ss' ? 'bg-orange-500/10 text-orange-600 border-orange-500/20' : season === 'aw' ? 'bg-indigo-500/100/10 text-blue-600 border-blue-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+  const seasonColor = season === 'ss' ? 'bg-orange-500/10 text-orange-600 border-orange-500/20' : season === 'aw' ? 'bg-teal-600/100/10 text-blue-600 border-blue-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20';
 
   // 密度スライダーの適正範囲
   const warpMax = physics?.warpMaxDensity || 200;
@@ -4024,9 +4034,9 @@ function renderSpecs(L, weave, warpYarn, weftYarn, gsm, physics, season, similar
 
     ${similar.length > 0 ? `
       <div class="info-card" style="background:rgba(99,102,241,0.08);border-color:rgba(99,102,241,0.15)">
-        <h4 class="font-medium text-sm mb-2 text-indigo-600">${L.similar}</h4>
+        <h4 class="font-medium text-sm mb-2 text-teal-700">${L.similar}</h4>
         <div class="flex flex-wrap gap-2">
-          ${similar.map(s => `<span class="px-2 py-1 bg-indigo-500/10 text-indigo-600 rounded-lg text-xs border border-indigo-500/20">${s.name[state.lang]}</span>`).join('')}
+          ${similar.map(s => `<span class="px-2 py-1 bg-teal-600/10 text-teal-700 rounded-lg text-xs border border-teal-600/20">${s.name[state.lang]}</span>`).join('')}
         </div>
       </div>
     ` : ''}
@@ -4224,7 +4234,7 @@ function renderSellingModal(L) {
           ${points.map(p => `
             <div class="p-3 glass-light rounded-lg">
               <div class="flex items-center gap-2 mb-1">
-                <span class="px-2 py-0.5 bg-indigo-500/10 text-indigo-600 rounded text-xs">${p.cat}</span>
+                <span class="px-2 py-0.5 bg-teal-600/10 text-teal-700 rounded text-xs">${p.cat}</span>
                 <span class="font-medium">${p.title}</span>
               </div>
               <div class="text-sm text-slate-400">${p.desc}</div>
@@ -4459,9 +4469,9 @@ function renderCostModal(L) {
               </table>
             </div>
             <div class="grid grid-cols-3 gap-3 text-center">
-              <div class="bg-indigo-500/10 rounded-xl p-3">
+              <div class="bg-teal-600/10 rounded-xl p-3">
                 <div class="text-xs text-blue-600 mb-1">${L.totalCostPerM}</div>
-                <div class="text-xl font-bold text-indigo-600">$${cost.totalCostPerM}</div>
+                <div class="text-xl font-bold text-teal-700">$${cost.totalCostPerM}</div>
               </div>
               <div class="bg-green-50 rounded-xl p-3">
                 <div class="text-xs text-green-600 mb-1">${L.sellingPrice}</div>
