@@ -238,6 +238,50 @@
       max-width: 220px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
+    /* ❓ ヘルプバッジ（タッチ/ホバーで説明ポップアップ） */
+    .help-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #e2e8f0; color: #64748b;
+      font-size: 10px; font-weight: 700; line-height: 1;
+      cursor: help; position: relative; vertical-align: middle;
+      margin-left: 3px; flex-shrink: 0;
+      transition: background 0.15s, color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .help-badge:hover, .help-badge:focus {
+      background: #6366f1; color: #fff; outline: none;
+    }
+    .help-badge .help-popup {
+      display: none; position: absolute; bottom: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%); min-width: 200px; max-width: 280px;
+      background: #1e293b; color: #f1f5f9;
+      padding: 10px 14px; border-radius: 10px;
+      font-size: 12px; font-weight: 400; line-height: 1.55;
+      white-space: normal; z-index: 100; text-align: left;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      pointer-events: none;
+    }
+    .help-badge .help-popup::after {
+      content: ''; position: absolute; top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent; border-top-color: #1e293b;
+    }
+    .help-badge:hover .help-popup,
+    .help-badge:focus .help-popup,
+    .help-badge.show .help-popup {
+      display: block;
+    }
+    /* 画面右端はみ出し防止 */
+    @media (max-width: 640px) {
+      .help-badge .help-popup {
+        left: auto; right: -8px; transform: none;
+      }
+      .help-badge .help-popup::after {
+        left: auto; right: 12px; transform: none;
+      }
+    }
     /* モーダル */
     .modal-overlay {
       background: rgba(0, 0, 0, 0.3);
@@ -698,6 +742,70 @@ const GLOSSARY = {
     '普梳纱': '标准纺纱方法生产的纱线，比精梳纱便宜。',
   }
 };
+
+// ============================================================
+// インラインヘルプ用語辞書（? バッジで表示）
+// ============================================================
+const TERM_TIPS = {
+  ja: {
+    epi: 'Ends Per Inch — 1インチ(2.54cm)あたりの経糸の本数。数値が大きいほど高密度で緻密な生地になります。',
+    ppi: 'Picks Per Inch — 1インチあたりの緯糸の本数。EPIと合わせて生地の密度を決定します。',
+    gsm: 'Grams per Square Meter — 1m²あたりの重さ（g）。生地の厚さ・重量感の指標です。',
+    ne: 'Ne（英式番手）— 糸の太さの単位。数値が大きいほど細い糸です。例: 40Neは20Neの半分の太さ。',
+    cf: 'Cover Factor（カバーファクター）— 生地の詰まり具合を示す指数。経緯合計で20〜28が一般的です。',
+    maxDensity: '限界密度 — 糸の太さから計算した物理的に織れる最大本数/inch。これを超えると糸が入りきらず織れません。',
+    yarnDiameter: '糸直径 — 番手と繊維比重から計算した糸の断面直径(mm)。',
+    thickness: '生地厚み — 経糸と緯糸の直径と織り組織から推定した生地の厚さ(mm)。',
+    washFastness: '耐洗濯堅牢度 — 洗濯による色落ちへの耐性。★5が最高。JIS L 0844基準。',
+    lightFastness: '耐光堅牢度 — 日光や照明による変退色への耐性。★5が最高。JIS L 0842基準。',
+    rubFastness: '耐摩擦堅牢度 — 摩擦による色移りへの耐性。★5が最高。JIS L 0849基準。',
+    perspFastness: '耐汗堅牢度 — 汗による変色・色移りへの耐性。★5が最高。JIS L 0848基準。',
+    fadingChar: '色落ち特性 — 経年使用による色の変化の仕方。インディゴは劇的に変化し風合いが出ます。',
+    colorRange: '染色可能色域 — その染料で出せる色の幅。「広い」なら多彩な色が可能です。',
+    weaveType: '織り組織 — 経糸と緯糸の交差パターン。平織・綾織・朱子織が三原組織です。',
+    difficulty: '織り難易度 — 組織の複雑さによる製織難度。★が多いほど高度な技術が必要です。',
+    season: '季節判定 — GSM(重さ)を基に春夏向き/秋冬向きを自動判定しています。',
+    pitch: 'ピッチ — 柄の繰り返し単位のサイズ(px)。大きいほど柄が大きくなります。',
+    dyeType: '染料タイプ — 繊維の種類ごとに適した染料が異なります。反応染料(綿)、酸性染料(絹・毛)等。',
+  },
+  zh: {
+    epi: 'Ends Per Inch — 每英寸(2.54cm)经纱根数。数值越大面料越紧密。',
+    ppi: 'Picks Per Inch — 每英寸纬纱根数。与EPI共同决定面料密度。',
+    gsm: 'Grams per Square Meter — 每平方米克重(g)。表示面料厚度和重量。',
+    ne: 'Ne(英支) — 纱线粗细的单位。数值越大纱线越细。例：40Ne是20Ne的一半粗。',
+    cf: 'Cover Factor(紧度) — 表示面料紧密程度的指数。经纬合计20-28为一般范围。',
+    maxDensity: '极限密度 — 根据纱线粗细计算的物理最大根数/inch。超过则无法织造。',
+    yarnDiameter: '纱线直径 — 由支数和纤维密度计算的纱线截面直径(mm)。',
+    thickness: '面料厚度 — 由经纬纱直径和织物组织推算的面料厚度(mm)。',
+    washFastness: '耐水洗牢度 — 洗涤后的色牢度。★5为最高。',
+    lightFastness: '耐光牢度 — 对日光照射的色牢度。★5为最高。',
+    rubFastness: '耐摩擦牢度 — 摩擦后的色牢度。★5为最高。',
+    perspFastness: '耐汗牢度 — 对汗液的色牢度。★5为最高。',
+    fadingChar: '褪色特性 — 长期使用后颜色的变化方式。靛蓝类会显著经年变化。',
+    colorRange: '可染色域 — 该染料可染出的颜色范围。',
+    weaveType: '织物组织 — 经纬纱的交织方式。平纹、斜纹、缎纹为三原组织。',
+    difficulty: '织造难度 — 组织复杂度带来的织造难度。★越多难度越高。',
+    season: '季节判定 — 根据GSM(克重)自动判断适合春夏还是秋冬。',
+    pitch: '花纹间距 — 花纹重复单位的大小(px)。',
+    dyeType: '染料类型 — 不同纤维需要不同类型的染料。活性(棉)、酸性(丝/毛)等。',
+  }
+};
+
+/**
+ * ❓ ヘルプバッジHTML生成
+ * @param {string} termKey - TERM_TIPS のキー (epi, ppi, gsm, ne, cf, etc.)
+ * @returns {string} HTML string
+ */
+function helpBadge(termKey) {
+  const tip = TERM_TIPS[state.lang]?.[termKey];
+  if (!tip) return '';
+  return '<span class="help-badge" tabindex="0" role="button" aria-label="' + termKey + ' の説明" onclick="this.classList.toggle(\'show\');event.stopPropagation()">?<span class="help-popup">' + tip + '</span></span>';
+}
+
+// グローバルクリックでヘルプバッジを閉じる
+document.addEventListener('click', function() {
+  document.querySelectorAll('.help-badge.show').forEach(function(el) { el.classList.remove('show'); });
+});
 
 // ============================================================
 // 類似生地データベース（後方互換）
@@ -3491,7 +3599,7 @@ function render() {
             <h4 class="font-medium text-sm mb-3 text-slate-600">${L.physicsInfo}</h4>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
               <div>
-                <div class="text-slate-400">${L.yarnDiameter} (${L.warpYarn})</div>
+                <div class="text-slate-400">${L.yarnDiameter} (${L.warpYarn}) ${helpBadge('yarnDiameter')}</div>
                 <div class="font-bold text-green-700">${physics.warpDiameter} mm</div>
               </div>
               <div>
@@ -3499,15 +3607,15 @@ function render() {
                 <div class="font-bold text-blue-700">${physics.weftDiameter} mm</div>
               </div>
               <div>
-                <div class="text-slate-400">${L.coverFactor}</div>
+                <div class="text-slate-400">${L.coverFactor} ${helpBadge('cf')}</div>
                 <div class="font-bold ${parseFloat(physics.totalCF) > 28 ? 'text-red-600' : 'text-slate-800'}">${physics.totalCF}</div>
               </div>
               <div>
-                <div class="text-slate-400">${L.thickness}</div>
+                <div class="text-slate-400">${L.thickness} ${helpBadge('thickness')}</div>
                 <div class="font-bold text-slate-800">${physics.thickness} mm</div>
               </div>
               <div>
-                <div class="text-slate-400">${L.maxDensity} (${L.warpYarn})</div>
+                <div class="text-slate-400">${L.maxDensity} (${L.warpYarn}) ${helpBadge('maxDensity')}</div>
                 <div class="font-bold ${physics.warpOverLimit ? 'text-red-600' : 'text-green-700'}">${physics.warpMaxDensity}/in</div>
               </div>
               <div>
@@ -3612,7 +3720,7 @@ function renderDesign(L) {
     </div>
     ${renderColorMgr('weft', L.weftColor, state.weftColors, L)}
     <div>
-      <label class="block text-sm font-medium mb-1 text-slate-600">${L.pitch}: <span class="font-bold text-slate-800">${state.pitch}px</span></label>
+      <label class="block text-sm font-medium mb-1 text-slate-600">${L.pitch} ${helpBadge('pitch')}: <span class="font-bold text-slate-800">${state.pitch}px</span></label>
       <input type="range" min="8" max="80" value="${state.pitch}" onchange="setState({pitch:+this.value})" class="w-full">
     </div>
     <div>
@@ -3711,18 +3819,18 @@ function renderYarn(L, warpYarn, weftYarn) {
     if (!dye) return '';
     return `
       <div class="info-card mt-2" style="padding:10px 12px">
-        <div class="text-xs font-medium text-slate-800 mb-1.5">${L.dyeInfo}</div>
+        <div class="text-xs font-medium text-slate-800 mb-1.5">${L.dyeInfo} ${helpBadge('dyeType')}</div>
         <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-          <div><span class="text-slate-400">${L.washFastness}:</span> <span class="text-amber-600">${starBar(dye.washFastness, 5)}</span></div>
-          <div><span class="text-slate-400">${L.lightFastness}:</span> <span class="text-amber-600">${starBar(dye.lightFastness, 5)}</span></div>
-          <div><span class="text-slate-400">${L.rubFastness}:</span> <span class="text-amber-600">${starBar(dye.rubFastness, 5)}</span></div>
-          <div><span class="text-slate-400">${L.perspFastness}:</span> <span class="text-amber-600">${starBar(dye.perspFastness, 5)}</span></div>
+          <div><span class="text-slate-400">${L.washFastness} ${helpBadge('washFastness')}:</span> <span class="text-amber-600">${starBar(dye.washFastness, 5)}</span></div>
+          <div><span class="text-slate-400">${L.lightFastness} ${helpBadge('lightFastness')}:</span> <span class="text-amber-600">${starBar(dye.lightFastness, 5)}</span></div>
+          <div><span class="text-slate-400">${L.rubFastness} ${helpBadge('rubFastness')}:</span> <span class="text-amber-600">${starBar(dye.rubFastness, 5)}</span></div>
+          <div><span class="text-slate-400">${L.perspFastness} ${helpBadge('perspFastness')}:</span> <span class="text-amber-600">${starBar(dye.perspFastness, 5)}</span></div>
         </div>
         <div class="mt-1.5 text-xs">
-          <span class="text-slate-400">${L.fadingChar}:</span>
+          <span class="text-slate-400">${L.fadingChar} ${helpBadge('fadingChar')}:</span>
           <span class="${dye.fadingChar === 'dramatic' ? 'text-red-600 font-bold' : dye.fadingChar === 'gradual' ? 'text-amber-600' : 'text-emerald-600'}">${fadingLabel(dye.fadingChar)}</span>
         </div>
-        <div class="mt-1 text-xs"><span class="text-slate-400">${L.colorRange}:</span> <span class="text-slate-600">${dye.colors[state.lang]}</span></div>
+        <div class="mt-1 text-xs"><span class="text-slate-400">${L.colorRange} ${helpBadge('colorRange')}:</span> <span class="text-slate-600">${dye.colors[state.lang]}</span></div>
         <div class="mt-1.5 text-xs text-slate-400 leading-relaxed">${dye.desc[state.lang]}</div>
       </div>
     `;
@@ -3742,11 +3850,11 @@ function renderYarn(L, warpYarn, weftYarn) {
         <select onchange="setState({warpYarnId:this.value})" class="select-warp w-full p-2 rounded-lg text-sm">
           ${warpFiltered.map(y => `<option value="${y.id}" ${state.warpYarnId===y.id?'selected':''}>${y.name[state.lang]} (${y.ne}Ne)</option>`).join('')}
         </select>
-        ${warpYarn ? `<div class="text-xs text-green-600 mt-1">${L.yarnDiameter}: ${physics?.warpDiameter || '-'}mm | ${L.maxDensity}: ${physics?.warpMaxDensity || '-'}/in</div>` : ''}
+        ${warpYarn ? `<div class="text-xs text-green-600 mt-1">${L.yarnDiameter}: ${physics?.warpDiameter || '-'}mm ${helpBadge('yarnDiameter')} | ${L.maxDensity}: ${physics?.warpMaxDensity || '-'}/in ${helpBadge('maxDensity')}</div>` : ''}
       </div>
       ${warpYarn ? `
         <div class="info-card">
-          <div class="text-xs text-slate-400 mb-2">${getComp(warpYarn, state.lang)}</div>
+          <div class="text-xs text-slate-400 mb-2">${getComp(warpYarn, state.lang)} ${helpBadge('ne')}</div>
           <div class="grid grid-cols-3 gap-2 text-xs">
             ${Object.entries(warpYarn.chars).slice(0,6).map(([k,v]) => `<div><div class="font-medium text-slate-800">${v}/5</div><div class="text-slate-400">${L.characteristics[k]||k}</div></div>`).join('')}
           </div>
@@ -3776,11 +3884,11 @@ function renderYarn(L, warpYarn, weftYarn) {
         <select onchange="setState({weftYarnId:this.value})" class="select-weft w-full p-2 rounded-lg text-sm">
           ${weftFiltered.map(y => `<option value="${y.id}" ${state.weftYarnId===y.id?'selected':''}>${y.name[state.lang]} (${y.ne}Ne)</option>`).join('')}
         </select>
-        ${weftYarn ? `<div class="text-xs text-blue-600 mt-1">${L.yarnDiameter}: ${physics?.weftDiameter || '-'}mm | ${L.maxDensity}: ${physics?.weftMaxDensity || '-'}/in</div>` : ''}
+        ${weftYarn ? `<div class="text-xs text-blue-600 mt-1">${L.yarnDiameter}: ${physics?.weftDiameter || '-'}mm ${helpBadge('yarnDiameter')} | ${L.maxDensity}: ${physics?.weftMaxDensity || '-'}/in ${helpBadge('maxDensity')}</div>` : ''}
       </div>
       ${weftYarn ? `
         <div class="info-card">
-          <div class="text-xs text-slate-400 mb-2">${getComp(weftYarn, state.lang)}</div>
+          <div class="text-xs text-slate-400 mb-2">${getComp(weftYarn, state.lang)} ${helpBadge('ne')}</div>
           <div class="grid grid-cols-3 gap-2 text-xs">
             ${Object.entries(weftYarn.chars).slice(0,6).map(([k,v]) => `<div><div class="font-medium text-slate-800">${v}/5</div><div class="text-slate-400">${L.characteristics[k]||k}</div></div>`).join('')}
           </div>
@@ -3873,7 +3981,7 @@ function renderSpecs(L, weave, warpYarn, weftYarn, gsm, physics, season, similar
 
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium mb-1 text-green-700 tooltip" data-tip="Ends Per Inch">🧵 ${L.epi}</label>
+        <label class="block text-sm font-medium mb-1 text-green-700">🧵 ${L.epi} ${helpBadge('epi')}</label>
         <div class="flex items-center gap-2">
           <input type="range" min="30" max="${Math.min(250, warpMax + 20)}" value="${state.epi}" oninput="setState({epi:+this.value})" class="range-warp flex-1">
           <input type="number" min="30" max="250" value="${state.epi}" onchange="setState({epi:Math.max(30,Math.min(250,+this.value))})" class="w-16 px-2 py-1 rounded-lg text-sm text-center font-bold ${physics?.warpOverLimit ? 'text-red-600 border-red-500/50' : 'text-green-700'}" style="background:#f0fdf4;border:1px solid #bbf7d0">
@@ -3881,7 +3989,7 @@ function renderSpecs(L, weave, warpYarn, weftYarn, gsm, physics, season, similar
         <div class="text-xs text-green-600">${L.recommended}: 40-${warpMax}</div>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1 text-blue-700 tooltip" data-tip="Picks Per Inch">🪡 ${L.ppi}</label>
+        <label class="block text-sm font-medium mb-1 text-blue-700">🪡 ${L.ppi} ${helpBadge('ppi')}</label>
         <div class="flex items-center gap-2">
           <input type="range" min="30" max="${Math.min(250, weftMax + 20)}" value="${state.ppi}" oninput="setState({ppi:+this.value})" class="range-weft flex-1">
           <input type="number" min="30" max="250" value="${state.ppi}" onchange="setState({ppi:Math.max(30,Math.min(250,+this.value))})" class="w-16 px-2 py-1 rounded-lg text-sm text-center font-bold ${physics?.weftOverLimit ? 'text-red-600 border-red-500/50' : 'text-blue-700'}" style="background:#eff6ff;border:1px solid #bfdbfe">
@@ -3894,10 +4002,10 @@ function renderSpecs(L, weave, warpYarn, weftYarn, gsm, physics, season, similar
       <div class="info-card">
         <div class="flex items-center justify-between">
           <div>
-            <div class="text-lg font-bold text-slate-800 tooltip" data-tip="Grams per Square Meter">${gsm.gsm} <span class="text-sm font-normal text-slate-400">gsm</span></div>
+            <div class="text-lg font-bold text-slate-800">${gsm.gsm} <span class="text-sm font-normal text-slate-400">gsm</span> ${helpBadge('gsm')}</div>
             <div class="text-sm text-slate-400">${L.weightCat[gsm.cat]}</div>
           </div>
-          <div class="px-3 py-1 rounded-full text-sm border ${seasonColor}">${L.season}: ${seasonLabel}</div>
+          <div class="px-3 py-1 rounded-full text-sm border ${seasonColor}">${L.season}: ${seasonLabel} ${helpBadge('season')}</div>
         </div>
       </div>
     ` : ''}
@@ -3905,12 +4013,12 @@ function renderSpecs(L, weave, warpYarn, weftYarn, gsm, physics, season, similar
     <div class="info-card space-y-2">
       <h4 class="font-medium text-slate-800">${L.fabricSummary}</h4>
       <div class="grid grid-cols-2 gap-4 text-sm">
-        <div><div class="text-slate-400">${L.weaveType}</div><div class="font-medium text-slate-700">${weave?.name[state.lang]||'-'}</div></div>
-        <div><div class="text-slate-400">${L.difficulty}</div><div class="font-medium text-amber-600">${'★'.repeat(weave?.diff||1)}</div></div>
+        <div><div class="text-slate-400">${L.weaveType} ${helpBadge('weaveType')}</div><div class="font-medium text-slate-700">${weave?.name[state.lang]||'-'}</div></div>
+        <div><div class="text-slate-400">${L.difficulty} ${helpBadge('difficulty')}</div><div class="font-medium text-amber-600">${'★'.repeat(weave?.diff||1)}</div></div>
         <div><div class="text-slate-400">${L.warpYarn}</div><div class="font-medium text-green-700">${warpYarn?.name[state.lang]||'-'}</div></div>
         <div><div class="text-slate-400">${L.weftYarn}</div><div class="font-medium text-blue-700">${weftYarn?.name[state.lang]||'-'}</div></div>
-        <div><div class="text-slate-400">${L.coverFactor}</div><div class="font-medium ${parseFloat(physics?.totalCF) > 28 ? 'text-red-600' : 'text-slate-700'}">${physics?.totalCF || '-'}</div></div>
-        <div><div class="text-slate-400">${L.thickness}</div><div class="font-medium text-slate-700">${physics?.thickness || '-'} mm</div></div>
+        <div><div class="text-slate-400">${L.coverFactor} ${helpBadge('cf')}</div><div class="font-medium ${parseFloat(physics?.totalCF) > 28 ? 'text-red-600' : 'text-slate-700'}">${physics?.totalCF || '-'}</div></div>
+        <div><div class="text-slate-400">${L.thickness} ${helpBadge('thickness')}</div><div class="font-medium text-slate-700">${physics?.thickness || '-'} mm</div></div>
       </div>
     </div>
 
