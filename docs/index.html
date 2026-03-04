@@ -2571,12 +2571,132 @@ const CHECK_CATEGORIES = {
 
 // カラーパレット
 const SWATCHES = [
-  "#000000","#ffffff","#1d3557","#457b9d","#a8dadc","#e63946","#f1faee",
-  "#264653","#2a9d8f","#e9c46a","#f4a261","#e76f51","#6a4c93","#8338ec",
-  "#3a86ff","#fb5607","#ff006e","#ffbe0b","#3d405b","#81b29a","#f2cc8f",
-  "#023e8a","#0077b6","#90e0ef","#caf0f8","#d62828","#f77f00","#fcbf49",
-  "#606c38","#283618","#bc6c25","#dda15e"
+  "#ffffff","#fafafa","#f5f5f5","#f0f0f0","#ebebeb","#e6e6e6","#e0e0e0","#dbdbdb","#d6d6d6","#d1d1d1","#cccccc","#c7c7c7","#c2c2c2","#bdbdbd","#b8b8b8","#b2b2b2","#adadad","#a8a8a8","#a3a3a3","#9e9e9e",
+  "#999999","#949494","#8f8f8f","#8a8a8a","#858585","#808080","#7a7a7a","#757575","#707070","#6b6b6b","#666666","#616161","#5c5c5c","#575757","#525252","#4c4c4c","#474747","#424242","#3d3d3d","#383838",
+  "#333333","#2e2e2e","#292929","#242424","#1f1f1f","#1a1a1a","#141414","#0f0f0f","#0a0a0a","#050505","#000000","#f4f2f1","#f1f2f4","#e8e6e3","#e3e5e8","#ddd9d5","#d5d8dd","#d1cdc7","#c7cbd1","#c6c0b9",
+  "#b9bec6","#bab4ab","#abb1ba","#afa79d","#9da4af","#a39b8f","#8f97a3","#988e81","#818a98","#8c8273","#f4f1f2","#c3b6bd","#7b6570","#382e33","#eae1e6","#b08d9e","#724f61","#1e151a","#dabecc","#ae6f8f",
+  "#553042","#f7edf2","#d7a2bd","#9d4370","#471f33","#f3d8e6","#d06c9e","#932f61","#270c1a","#edabcc","#d8468f","#6d1742","#fce8f2","#f089bd","#c81970","#5b0b33","#fccfe6","#f5479e","#b80a61","#30031a",
+  "#ff99cc","#ff1f8f","#850042","#e8e3e5","#b6a5ac","#6b5760","#1c1719","#c9b1bb","#845c6e","#3c2a32","#e3ced7","#ae6f8b","#683b4f","#f0dbe4","#ce8da9","#9d436a","#361724","#edc5d6","#d06c97","#7c274c",
+  "#270c18","#edabc8","#d22d74","#6d173d","#f9d2e3","#ed6ea5","#c81965","#440822","#fbb6d4","#f54792","#9b0848","#300316","#ff99c5","#ff006e","#850039","#b6a5ab","#7b656d","#eae1e4","#b08d99","#724f5c",
+  "#2d1f24","#dabec8","#ae6f86","#683b4c","#f7edf1","#d7a2b6","#9d4364","#471f2e","#f3d8e2","#d06c91","#932f53","#3a1221","#edabc3","#d8467b","#871d43","#fce8f0","#f089af","#c81959","#5b0b28","#fccfdf",
+  "#f54787","#b80a4a","#49041d","#ff99be","#ff1f71","#a3003c","#e8e3e4","#b6a5aa","#7b656c","#1c1718","#c9b1b8","#845c68","#3c2a2f","#dabec6","#a35c71","#55303b","#f7edf0","#ce8da0","#9d435e","#471f2b",
+  "#e7b1c1","#c95477","#652035","#fbeaef","#e892ab","#b92753","#541226","#f9d2de","#ea5380","#ac1543","#44081a","#fa9eba","#f42a66","#7e072a","#ffe5ed","#ff7aa2","#e00043","#66001f","#c3b6b9","#7b656a",
+  "#382e30","#d5c3c7","#966973","#4e363c","#e3ced3","#b98390","#7c4652","#211216","#d7a2af","#b24d64","#471f28","#f3d8de","#d88397","#932f46","#3a121c","#edabba","#d84668","#871d35","#fce8ed","#f089a1",
+  "#e31c4a","#5b0b1e","#fccfd9","#f76486","#b80a32","#490414","#ff99b1","#ff1f53","#a30026","#f4f1f1","#a89498","#6b575a","#d5c3c6","#a37b81","#604348","#eddee1","#c4979e","#90515b","#311c1f","#e8c9cf",
+  "#bc6271","#72313c","#240f13","#df9aa6","#c23d53","#65202b","#f6d5da","#e2788a","#b92740","#3f0d16","#f7bbc5","#e63754","#911227","#2d060c","#f88195","#f20d33","#7e071b","#ffccd5","#ff5c77","#e00025",
+  "#4c000d","#c3b6b7","#7b6567","#382e2f","#e0d2d3","#a37b7f","#604346","#f6efef","#c4979b","#905157","#412528","#e8c9cd","#c5777f","#723137","#240f11","#e7b1b7","#c23d4a","#652027","#fbeaec","#e27883",
+  "#b92736","#541218","#f7bbc1","#ea5362","#91121f","#2d060a","#fa9ea7","#f20d24","#7e0713","#ffe5e8","#ff5c6c","#e00016","#66000a","#b6a5a6","#7b6566","#382e2e","#bc9fa0","#845c5d","#2d1f20","#dabebf",
+  "#ae6f71","#553031","#f7eded","#d7a2a4","#9d4346","#471f20","#f3d8d9","#d06c6f","#932f32","#270c0d","#edabad","#d8464b","#6d171a","#fce8e9","#f0898c","#c8191f","#5b0b0e","#fccfd0","#f5474d","#b80a10",
+  "#300304","#ff999c","#ff1f26","#850004","#c3b6b6","#6b5757","#b08d8d","#604343","#dabebe","#a35c5c","#412525","#d7a2a2","#9d4343","#240f0f","#d88383","#932f2f","#270c0c","#e89292","#b92727","#3f0d0d",
+  "#f4a4a4","#e31c1c","#5b0b0b","#fbb6b6","#f42a2a","#7e0707","#ffcccc","#ff3d3d","#a30000","#b6a6a5","#6b5857","#c9b2b1","#845e5c","#2d201f","#c49997","#7c4846","#211312","#d7a5a2","#9d4843","#361817",
+  "#df9e9a","#ab3c36","#3a1412","#edaeab","#d2352d","#541512","#f4a8a4","#e3261c","#5b0f0b","#fbbab6","#f4342a","#7e0d07","#ffcfcc","#ff473d","#a30800","#ddd6d5","#8c7573","#382f2e","#b0908d","#604643",
+  "#ede0de","#b98883","#683f3b","#e8cdc9","#bc6b62","#5d2d28","#f3dbd8","#d0766c","#7c3027","#fbecea","#e28378","#a02f22","#2a0c09","#f09389","#c82a19","#440e08","#faa79e","#f2240d","#610e05","#ffa399",
+  "#ff1a00","#660a00","#b6a8a5","#6b5a57","#f5f1f0","#b0928d","#604743","#e3d1ce","#ae796f","#553530","#f0dedb","#c58377","#723b31","#f9eeec","#d89083","#933e2f","#f6dad5","#dd725f","#872c1d","#fcebe8",
+  "#ed816e","#ac2c15","#2d0c06","#f89381","#d52a0b","#490e04","#ffa899","#ff2600","#660f00","#b6a9a5","#6b5b57","#c9b6b1","#84645c","#e3d2ce","#ae7c6f","#553730","#e0c0b8","#b2614d","#47271f","#e7bcb1",
+  "#c2583d","#4e2318","#f2cac0","#d86346","#6d2817","#f9dad2","#ea7153","#912b12","#feebe7","#f56a47","#9b2608","#ffebe5","#ff7c5c","#c22700","#330a00","#7b6b65","#c9b7b1","#84665c","#2d231f","#c4a297",
+  "#7c5346","#211612","#d7afa2","#9d5a43","#361f17","#e7bfb1","#ab5336","#3a1c12","#edbbab","#d2562d","#542212","#f7cabb","#e66337","#76280f","#fcdacf","#f57247","#9b2d08","#ffece5","#ff855c","#c23000",
+  "#330d00","#9a8a84","#38312e","#bca89f","#725a4f","#f6f1ef","#c4a497","#7c5646","#211712","#cea08d","#88513a","#24150f","#dfaf9a","#ab5936","#3a1e12","#edbfab","#d25e2d","#542612","#f7cdbb","#e3581c",
+  "#5b230b","#fbcbb6","#f4662a","#7e2a07","#ffdbcc","#ff773d","#a33100","#e8e5e3","#6b5e57","#b0988d","#604d43","#cfb7aa","#7c5846","#f7f1ed","#cea38d","#724731","#f3e1d8","#d08d6c","#7c4327","#f2d0c0",
+  "#d87646","#6d3417","#f7cfbb","#e67237","#76310f","#fabd9e","#f2590d","#612405","#ffbb99","#ff5500","#662200","#b6aca5","#6b5f57","#eae5e1","#a38b7b","#4e4036","#ede4de","#b99983","#553f30","#e8d6c9",
+  "#bc8662","#472f1f","#edd5c5","#c98354","#4e2e18","#f2d4c0","#d88046","#542c12","#f7d3bb","#e67d37","#5b2b0b","#fbd2b6","#f47b2a","#612a05","#ffd1b2","#ff781f","#853500","#b6ada5","#6b6057","#e0d8d2",
+  "#967e69","#3c322a","#cfbbaa","#7c5f46","#211912","#d7bba2","#885e3a","#24190f","#dfba9a","#935e2f","#27190c","#e8ba92","#a05d22","#2a1809","#f0b989","#c86a19","#2d1806","#f8b981","#d5690b","#301803",
+  "#ffb87a","#e06900","#331800","#8c8073","#1c1a17","#b09f8d","#605343","#ede6de","#ae916f","#554430","#f0e6db","#bc9262","#5d4428","#f3e6d8","#d0a16c","#654520","#f6e7d5","#dda25f","#6d4517","#f9e7d2",
+  "#eaa353","#76460f","#fce7cf","#f5a447","#7e4607","#ffe7cc","#ffa53d","#854700","#dddad5","#7b7265","#d5cec3","#968469","#3c352a","#dacfbe","#907651","#31281c","#d7c2a2","#88693a","#241c0f","#dfc49a",
+  "#936b2f","#271c0c","#e8c592","#a06d22","#2a1d09","#f0c789","#ac7015","#2d1d06","#f8c981","#b8720a","#301e03","#ffca7a","#e08700","#331f00","#9a9384","#49453c","#c9c1b1","#84775c","#2d291f","#c4b597",
+  "#7c6a46","#211c12","#ceb88d","#886e3a","#241d0f","#d0af6c","#7c6027","#fbf5ea","#ddb35f","#87631d","#fcf6e8","#edc36e","#916712","#fef6e7","#f7c664","#9b6a08","#fff6e5","#ffc95c","#a36d00","#e8e7e3",
+  "#9a9484","#6b6557","#d5d0c3","#a3987b","#72684f","#f6f4ef","#dad2be","#ae9c6f","#685c3b","#312b1c","#e0d5b8","#bca262","#88723a","#362d17","#ede1c5","#d8c083","#ab8936","#655120","#fbf6ea","#e8cf92",
+  "#d8ae46","#87691d","#2a2109","#f7e6bb","#eabf53","#c89619","#5b440b","#fcefcf","#f8d781","#f2b10d","#7e5c07","#302303","#ffe299","#ffbf1f","#c28b00","#4c3700","#d1cfc7","#8c8673","#49463c","#d5d1c3",
+  "#a39a7b","#605943","#2d2a1f","#cfc7aa","#a3935c","#685e3b","#f7f5ed","#e0d7b8","#bca762","#726331","#362e17","#ede3c5","#d0b96c","#ab8f36","#4e4118","#fbf7ea","#e8d492","#d2ac2d","#876e1d","#2a2209",
+  "#f4e1a4","#eac653","#ac8915","#443608","#fcf2cf","#f7d564","#f2bd0d","#7e6207","#fff9e5","#ffe799","#ffcb1f","#a37d00","#4c3b00","#a8a494","#6b6757","#f5f4f0","#bcb79f","#968e69","#4e4a36","#edeade",
+  "#cfc8aa","#a3965c","#554e30","#211e12","#d7cda2","#b2a04d","#726631","#24200f","#e7ddb1","#c9b454","#7c6c27","#3a3312","#ede1ab","#d8bd46","#a08922","#3f360d","#f9f2d2","#edd66e","#c8a819","#76630f",
+  "#fefae7","#f8e281","#f4cf2a","#9b8008","#302803","#fff1b2","#ffdb3d","#e0b700","#665300","#d1d0c7","#9a9784","#5a5849","#e0ded2","#bcb89f","#847f5c","#3c3a2a","#e3e1ce","#b9b283","#908751","#413d25",
+  "#f0eddb","#d7d0a2","#b2a54d","#5d5628","#24210f","#e7dfb1","#c9ba54","#93862f","#3a3512","#f6f2d5","#e2d478","#b9a627","#6d6217","#fcfae8","#f0e389","#e6cf37","#918012","#443c08","#fbf2b6","#f5de47",
+  "#d5ba0b","#615505","#fff8cc","#ffed7a","#ffdd00","#857300","#332c00","#9a9884","#6b6957","#c9c7b1","#969369","#605e43","#e3e2ce","#b9b583","#908a51","#413f25","#e8e5c9","#cec98d","#9d9643","#5d5828",
+  "#f9f8ec","#dfd99a","#c9bf54","#7c7527","#27250c","#f2edc0","#ddd35f","#b9ad27","#544f12","#f9f6d2","#f0e889","#e3d21c","#766d0f","#2d2a06","#faf29e","#f4e32a","#b8aa0a","#494304","#fffbcc","#fff15c",
+  "#e0ce00","#857a00","#9a9984","#72704f","#a39e5c","#d7d4a2","#726e31","#dfdb9a","#7c7627","#e8e292","#87801d","#f7f3bb","#c8bc19","#2d2b06","#f2e30d","#494404","#fff01f","#665f00","#b6b6a5","#5a5a49",
+  "#c9c9b1","#72724f","#ededde","#aeae6f","#414125","#cece8d","#727231","#ededc5","#c2c23d","#27270c","#e2e278","#6d6d17","#f7f7bb","#c8c819","#2d2d06","#f5f547","#7e7e07","#ffff99","#e0e000","#f3f4f1",
+  "#999a84","#f4f5f0","#adb08d","#4d4e36","#d8dabe","#8b9051","#eef0db","#b6bc62","#343617","#dbdf9a","#767c27","#f4f6d5","#c7d22d","#3c3f0d","#e5ed6e","#899112","#f7fbb6","#e3f20d","#2d3003","#f4ff5c",
+  "#7c8500","#a5a894","#292a22","#abb08d","#4b4e36","#bec497","#62683b","#e4e8c9","#a5b24d","#21240f","#cdd883","#5c6520","#ebf2c0","#a6b927","#262a09","#d6ea53","#68760f","#eefa9e","#bad50b","#fcffe5",
+  "#e5ff3d","#586600","#b2b6a5","#46493c","#b6bc9f","#5a6043","#dfe3ce","#95a35c","#1e2112","#c1ce8d","#525d28","#e5edc5","#93ab36","#21270c","#c4dd5f","#5c6d17","#e4f4a4","#a5c819","#f9fee7","#d2f547",
+  "#4f6105","#ebff99","#9bc200","#ced1c7","#757b65","#dce0d2","#8a9669","#e9edde","#9dae6f","#2b311c","#bdce8d","#4f5d28","#e2edc5","#8bab36","#20270c","#bbdd5f","#566d17","#dff4a4","#99c819","#f8fee7",
+  "#c7f547","#486105","#e4ff99","#8ec200","#daddd5","#97a37b","#d2dabe","#5b683b","#aec577","#2c3617","#88ab36","#e3f2c0","#67871d","#dcf4a4","#57760f","#d5f881","#5a7e07","#ceff5c","#476600","#828c73",
+  "#e6eae1","#64724f","#dbe3ce","#56683b","#d0e0b8","#485d28","#c4df9a","#384e18","#b8e278","#3a5412","#adea53","#2c4408","#a3f42a","#1e3003","#99ff00","#f2f4f1","#616b57","#bdc9b1","#333c2a","#9eb983",
+  "#26311c","#8fbc62","#1a240f","#80c23d","#f2fbea","#70b927","#e6f9d2","#61ac15","#d9fbb6","#529b08","#ccff99","#52a300","#acb6a5","#32382e","#8ba37b","#191e15","#6a9051","#e3f0db","#59883a","#d5edc5",
+  "#497c27","#c5edab","#47871d","#b2f089","#38760f","#9ff764","#2a6105","#8bff3d","#1f4c00","#7a8c73","#e4eae1","#5a724f","#d4e3ce","#48683b","#c4e0b8","#457231","#afdf9a","#356520","#98e278","#265412",
+  "#80ea53","#1a4408","#66f42a","#103003","#4cff00","#f1f4f1","#788c73","#e3eae1","#729669","#171e15","#8eb983","#2a4125","#add7a2","#3e7231","#cdedc5","#4dab36","#edfbea","#63d846","#173f0d","#9ef089",
+  "#2b9112","#c4fbb6","#34d50b","#ebffe5","#4bff1f","#0f4c00","#96a894","#2f382e","#b2c9b1","#456043","#cfe3ce","#559051","#eef7ed","#68bc62","#193617","#89d883","#246520","#afedab","#2aa022","#d4f9d2",
+  "#29e31c","#082d06","#53f547","#0b6105","#83ff7a","#0ba300","#b6c3b7","#495a4b","#b1c9b2","#436045","#bedac0","#467c49","#dbf0dd","#4db253","#0f2411","#6cd072","#184e1c","#92e897","#1d8724","#bbf7bf",
+  "#19c824","#e7fee8","#2af437","#044908","#5cff67","#008509","#b6c3b9","#495a4d","#d2e0d5","#5c8464","#eff6f0","#6fae7c","#1c3120","#a2d7ad","#31723e","#c5edcd","#36ab4d","#eafbed","#46d863","#0d3f17",
+  "#6eed87","#0f7623","#9efab0","#0ab82d","#ccffd6","#00ff33","#00330a","#94a89b","#2e3831","#9fbca9","#364e3e","#bedac7","#467c58","#dbf0e2","#4db26f","#0f2416","#6cd08d","#184e2a","#92e8ae","#1d8740",
+  "#bbf7cf","#1ce35e","#062d13","#47f581","#056124","#7affa7","#00a336","#b6c3bc","#495a51","#c3d5cb","#4f7260","#deede5","#5ca37d","#122119","#77c59c","#1f4732","#9adfba","#277c4f","#c0f2d7","#27b96b",
+  "#e8fcf2","#37e689","#084424","#64f7a9","#077e3e","#99ffc9","#00c25a","#e3e8e6","#849a91","#222a27","#9fbcb0","#364e45","#bedacf","#467c66","#dbf0e8","#4db28a","#0f241c","#6cd0a8","#184e38","#92e8c5",
+  "#1d875c","#bbf7df","#19c882","#e7fef5","#2af4a3","#04492d","#5cffbe","#008550","#b6c3c0","#495a55","#c3d5d0","#4f7269","#deede9","#5ca390","#12211d","#8dcebd","#285d4f","#b1e7d8","#2f9378","#d5f6ed",
+  "#2dd2a6","#092a21","#53eac1","#0b5b46","#81f8d9","#089b74","#b2ffeb","#00e0a5","#c7d1cf","#576b67","#c3d5d2","#4f726b","#bedad5","#467c71","#dbf0ec","#4db29e","#0f2420","#6cd0bc","#184e43","#92e8d7",
+  "#1d8771","#bbf7eb","#19c8a5","#e7fef9","#47f5d2","#05614f","#7affe4","#00a383","#c7d1d0","#576b69","#c3d5d3","#4f726f","#deedeb","#5ca39c","#1c312f","#8dcec8","#285d58","#b1e7e1","#2f9389","#d5f6f3",
+  "#2dd2c2","#092a27","#53eadb","#0b5b53","#9efaf1","#0ab8a7","#ccfffa","#00ffe6","#00332e","#849a9a","#222a2a","#8db0b0","#2a3c3c","#aacfcf","#467c7c","#dbf0f0","#4db2b2","#0f2424","#6cd0d0","#184e4e",
+  "#92e8e8","#1d8787","#bbf7f7","#19c8c8","#062d2d","#47f5f5","#056161","#7affff","#00a3a3","#c7d0d1","#57696b","#d2dee0","#5c8084","#eff5f6","#6fa8ae","#253e41","#a2d2d7","#316c72","#c5e9ed","#369fab",
+  "#eaf9fb","#46c9d8","#0d3a3f","#6ee0ed","#0f6c76","#b6f4fb","#0bc1d5","#e5fcff","#1fe9ff","#00454c","#94a4a8","#2e3638","#8da9b0","#2a393c","#aac8cf","#46717c","#dbecf0","#4d9eb2","#0f2024","#6cbcd0",
+  "#18434e","#92d7e8","#1d7187","#bbebf7","#19a5c8","#06252d","#47d2f5","#054f61","#7ae4ff","#0083a3","#b6bfc3","#49555a","#c3d0d5","#4f6872","#cedde3","#5c8ea3","#121c21","#77aec5","#1f3b47","#9acadf",
+  "#27637c","#c0e3f2","#278db9","#e8f6fc","#37b2e6","#0b435b","#81d5f8","#086f9b","#b2e8ff","#009de0","#e3e6e8","#57646b","#9fb2bc","#5c7784","#eff3f6","#83a7b9","#3b5968","#dbe9f0","#77abc5","#315c72",
+  "#ecf4f9","#9ac8df","#3684ab","#122d3a","#abd7ed","#46a7d8","#17516d","#bbe3f7","#37ace6","#126791","#e7f6fe","#64c6f7","#0a7eb8","#043249","#99ddff","#00aaff","#004466","#c7cdd1","#73818c","#2e3438",
+  "#b1bec9","#5c7384","#2a343c","#beceda","#5c84a3","#253541","#dbe7f0","#77a3c5","#315672","#ecf3f9","#9ac1df","#3678ab","#12293a","#abd0ed","#4699d8","#17486d","#d2e8f9","#53a8ea","#156bac","#061c2d",
+  "#81c5f8","#0b7ed5","#053961","#b2deff","#1f9eff","#004b85","#c7ccd1","#737f8c","#2e3338","#c3cbd5","#697e96","#36424e","#dee5ed","#839cb9","#3b5068","#121921","#a2bbd7","#436d9d","#172536","#c5d7ed",
+  "#548bc9","#204065","#d5e4f6","#78aae2","#225da0","#09182a","#89b9f0","#1c79e3","#0b305b","#b6d6fb","#2a88f4","#084d9b","#e5f1ff","#5ca8ff","#005ac2","#00244c","#848c9a","#3c4149","#b1bac9","#5c6b84",
+  "#2a313c","#ced6e3","#6f86ae","#303d55","#edf1f7","#8da5ce","#3a5788","#0f1724","#b1c5e7","#3d6ec2","#182c4e","#c0d2f2","#5f8ddd","#1d4387","#e8f0fc","#6e9ced","#1959c8","#081e44","#9ec0fa","#0d61f2",
+  "#07327e","#ccdfff","#3d84ff","#003ca3","#001333","#a5aab6","#575c6b","#17181c","#b1b7c9","#697596","#2a2f3c","#bec5da","#5c6fa3","#303a55","#dbe1f0","#778cc5","#314272","#0f1524","#9aaddf","#3655ab",
+  "#121d3a","#c0cdf2","#466dd8","#172e6d","#d2dcf9","#6e90ed","#153eac","#06102d","#81a1f8","#0d4af2","#051e61","#b2c7ff","#1f5aff","#002ca3","#f1f1f4","#9498a8","#494c5a","#c3c6d5","#7b81a3","#363a4e",
+  "#dee1ed","#838cb9","#464f7c","#121521","#a2abd7","#43529d","#1f2547","#c5cbed","#5468c9","#202b65","#eaedfb","#788ae2","#2237a0","#090e2a","#a4b1f4","#1c3de3","#0b185b","#b6c2fb","#4764f5","#08219b",
+  "#e5eaff","#5c77ff","#0025e0","#000d4c","#b6b7c3","#65667b","#22232a","#c3c4d5","#696c96","#2a2b3c","#bec0da","#6f74ae","#303255","#dbddf0","#777dc5","#3a3f88","#0f1124","#9a9fdf","#363eab","#181c4e",
+  "#c0c3f2","#4650d8","#171d6d","#e8eafc","#6e76ed","#151fac","#06082d","#9ea4fa","#0d1cf2","#050b61","#b2b8ff","#3d4aff","#000ba3","#c7c7d1","#2e2e38","#7b7ca3","#2a2a3c","#6f71ae","#252641","#a2a4d7",
+  "#313372","#d8d9f3","#5458c9","#181a4e","#9294e8","#2226a0","#e8e9fc","#5358ea","#0f1276","#9ea1fa","#0b12d5","#e5e6ff","#3d44ff","#000485","#9594a8","#b2b1c9","#514f72","#bfbeda","#535190","#dcdbf0",
+  "#6562bc","#201f47","#9d9adf","#322f93","#d6d5f6","#4b46d8","#141254","#a7a4f4","#1f19c8","#07062d","#6964f7","#0d089b","#ceccff","#261fff","#030066","#86849a","#2f2e38","#908db0","#39364e","#c1beda",
+  "#575190","#141221","#938dce","#373172","#dbd8f3","#6054c9","#1e184e","#b1abed","#2f22a0","#eae8fc","#6253ea","#190f76","#bdb6fb","#240df2","#0b0449","#887aff","#1300c2","#e4e3e8","#77738c","#18171c",
+  "#928db0","#3a364e","#c2beda","#5b5190","#151221","#988dce","#3c3172","#ddd8f3","#6854c9","#21184e","#b6abed","#4027b9","#ece8fc","#6c53ea","#200f76","#c2b6fb","#330df2","#0f0449","#907aff","#2000c2",
+  "#f2f1f4","#79738c","#d5d2e0","#655c84","#17151e","#9083b9","#383055","#d1c9e8","#644db2","#1e1736","#aa9adf","#462f93","#eeeafb","#7d5fdd","#2b176d","#c9bbf7","#4219c8","#0f062d","#8664f7","#2a089b",
+  "#d8ccff","#531fff","#180066","#9a94a8","#403c49","#b8b1c9","#5a4f72","#d4cee3","#715ca3","#221c31","#a08dce","#453172","#e0d8f3","#7754c9","#28184e","#bfabed","#5327b9","#13092a","#946eed","#381291",
+  "#cbb6fb","#520df2","#180449","#a27aff","#3a00c2","#e5e3e8","#5e576b","#988db0","#4d4360","#b7aacf","#665190","#f1edf7","#a38dce","#543a88","#e1d8f3","#8d6cd0","#43277c","#d0c0f2","#7646d8","#34176d",
+  "#dfd2f9","#7237e6","#310f76","#cdb6fb","#590df2","#240561","#ccb2ff","#691fff","#220066","#bcb6c3","#6f657b","#f2f0f5","#ab9fbc","#5f4f72","#f2eff6","#aa97c4","#5d467c","#191221","#a98dce","#5c3a88",
+  "#180f24","#a883d8","#5a2f93","#180c27","#a678e2","#5922a0","#17092a","#b689f0","#5715ac","#17062d","#b581f8","#550ab8","#160330","#b47aff","#6100e0","#160033","#aea5b6","#62576b","#e6e1ea","#9f8db0",
+  "#534360","#d9cee3","#916fae","#443055","#e6dbf0","#9262bc","#44285d","#e6d8f3","#9354c9","#452065","#e7d5f6","#a25fdd","#45176d","#e7d2f9","#a353ea","#460f76","#e7cffc","#a447f5","#46077e","#e7ccff",
+  "#a53dff","#5700a3","#dad5dd","#92849a","#443c49","#c0b1c9","#765c84","#281f2d","#d0beda","#795190","#291c31","#d1b8e0","#7c439d","#2a1736","#d3b1e7","#8036ab","#2c123a","#d5abed","#962dd2","#2d0d3f",
+  "#d7a4f4","#9a1ce3","#2e0844","#d89efa","#9e0df2","#2f0449","#da99ff","#a200ff","#410066","#c0b6c3","#75657b","#28222a","#b49fbc","#694f72","#1c151e","#c5aacf","#6e467c","#1d1221","#c9a2d7","#733a88",
+  "#1e0f24","#cd9adf","#782f93","#200c27","#d192e8","#9227b9","#21092a","#d589f0","#9919c8","#23062d","#d981f8","#9f0bd5","#360449","#dc7aff","#a500e0","#38004c","#96849a","#473c49","#ddd2e0","#8f6996",
+  "#392a3c","#e0cee3","#a46fae","#3d2541","#e3c9e8","#ad62bc","#411f47","#e6c5ed","#b654c9","#592065","#e9c0f2","#bf46d8","#5f176d","#edbbf7","#c937e6","#650f76","#f0b6fb","#d22af4","#6a077e","#f6ccff",
+  "#da1fff","#6e0085","#dcd5dd","#8b738c","#372e38","#c7b1c9","#704f72","#ecdeed","#b683b9","#653b68","#eedbf0","#c077c5","#6e3172","#f1d8f3","#ca6cd0","#76277c","#f9eafb","#d55fdd","#801d87","#fbe8fc",
+  "#e053ea","#891291","#fce7fe","#ea47f5","#91089b","#fde5ff","#f45cff","#9800a3","#f4f1f4","#a894a8","#6b576b","#eae1ea","#bc9fbc","#724f72","#1e151e","#dabeda","#a35ca3","#553055","#e8c9e8","#bc62bc",
+  "#723172","#f9ecf9","#df9adf","#ab36ab","#3a123a","#f2c0f2","#d846d8","#6d176d","#fce8fc","#ed6eed","#c819c8","#440844","#fa9efa","#f42af4","#7e077e","#ffe5ff","#ff5cff","#c200c2","#4c004c","#c3b6c2",
+  "#8c738a","#382e37","#d5c3d3","#a37b9f","#4e364c","#f6eff5","#c497c0","#7c4677","#311c2f","#e0b8dc","#bc62b3","#5d2858","#f3d8f0","#d883cf","#932f89","#3a1236","#edabe7","#d22dc2","#6d1765","#f9d2f5",
+  "#ed6ee0","#ac159d","#2d0629","#fa9ef1","#f20ddb","#7e0772","#ffccfa","#ff3dec","#c200ae","#33002e","#b6a5b2","#7b6577","#1c171b","#c9b1c4","#845c7c","#2d1f2a","#e3cedf","#ae6fa2","#683b5f","#f7edf5",
+  "#ce8dc1","#9d438b","#36172f","#edc5e5","#c954b2","#652057","#fbeaf7","#e278cd","#b9279c","#3f0d35","#f4a4e4","#e637c3","#760f61","#fee7f9","#f764d9","#b80a95","#49043b","#ff99eb","#ff1fd2","#85006a",
+  "#d1c7ce","#9a8493","#493c45","#e0d2dc","#b08da5","#604357","#1e151b","#c497b7","#7c466c","#311c2b","#e0b8d4","#bc62a1","#5d284d","#f3d8eb","#d883be","#932f75","#3a122e","#edabd9","#d22da1","#6d1754",
+  "#f9d2ed","#ed6ec7","#ac157f","#2d0621","#fa9ede","#f20dad","#7e075a","#ffccf0","#ff3dc5","#c20088","#330024","#a894a0","#5a4953","#d5c3ce","#a37b93","#4e3645","#eddee7","#b983a4","#683b56","#21121b",
+  "#d7a2c2","#b24d8a","#471f37","#edc5dd","#d06ca8","#7c275a","#fbeaf4","#e892c5","#b9277f","#54123a","#f7bbdf","#e637a0","#91125e","#fee7f5","#f881c9","#d50b84","#49042d","#ffb2e0","#ff1fa5","#a30062"
 ];
+
+// カラーフィルタリング (カテゴリ別)
+function filterSwatches(cat) {
+  if (cat === 'all') return SWATCHES;
+  return SWATCHES.filter(hex => {
+    const r = parseInt(hex.slice(1,3),16)/255;
+    const g = parseInt(hex.slice(3,5),16)/255;
+    const b = parseInt(hex.slice(5,7),16)/255;
+    const mx = Math.max(r,g,b), mn = Math.min(r,g,b), d = mx - mn;
+    if (d < 0.04) return cat === 'achro';
+    if (cat === 'achro') return false;
+    let h;
+    if (mx === r) h = ((g-b)/d) % 6;
+    else if (mx === g) h = (b-r)/d + 2;
+    else h = (r-g)/d + 4;
+    h = (h * 60 + 360) % 360;
+    if (cat === 'pinkred') return h >= 330 || h < 20;
+    if (cat === 'orange') return h >= 20 && h < 55;
+    if (cat === 'yellow') return h >= 55 && h < 80;
+    if (cat === 'green') return h >= 80 && h < 170;
+    if (cat === 'blue') return h >= 170 && h < 260;
+    if (cat === 'purple') return h >= 260 && h < 330;
+    return true;
+  });
+}
 
 // ============================================================
 // ユーティリティ関数
@@ -3403,6 +3523,9 @@ let state = {
   // Undo/Redo
   undoStack: [],
   redoStack: [],
+  // カラーパレットカテゴリ
+  colorCat: 'all',
+  popupColorCat: 'all',
 };
 
 // 配列パターンから糸インデックスに対応する色を取得
@@ -3645,9 +3768,21 @@ function render() {
         ` : ''}
 
         <div class="mt-4 no-print">
-          <label class="block text-sm font-medium mb-2 text-slate-600">${L.quickColors}</label>
-          <div class="flex flex-wrap gap-1.5">
-            ${SWATCHES.map(hex => `<button class="color-swatch w-6 h-6 rounded-md" style="background:${hex}" onclick="quickColor('${hex}')" title="${hex}" aria-label="${state.lang === 'ja' ? '色を適用' : '应用颜色'}: ${hex}"></button>`).join('')}
+          <label class="block text-sm font-medium mb-2 text-slate-600">${L.quickColors} <span class="text-xs text-slate-400">(${SWATCHES.length}${state.lang==='ja'?'色':'色'})</span></label>
+          <div class="flex flex-wrap gap-1 mb-2">
+            ${[
+              {label: state.lang==='ja'?'全て':'全部', key:'all'},
+              {label: state.lang==='ja'?'白〜黒':'白〜黑', key:'achro'},
+              {label: state.lang==='ja'?'ピンク/赤':'粉/红', key:'pinkred'},
+              {label: state.lang==='ja'?'オレンジ':'橙色', key:'orange'},
+              {label: state.lang==='ja'?'黄':'黄', key:'yellow'},
+              {label: state.lang==='ja'?'緑':'绿', key:'green'},
+              {label: state.lang==='ja'?'青':'蓝', key:'blue'},
+              {label: state.lang==='ja'?'紫':'紫', key:'purple'},
+            ].map(cat => `<button class="px-2 py-0.5 text-xs rounded-full border ${(state.colorCat||'all')===cat.key?'bg-teal-600 text-white border-teal-600':'bg-white text-slate-600 border-slate-300 hover:border-teal-400'}" onclick="setState({colorCat:'${cat.key}'})">${cat.label}</button>`).join('')}
+          </div>
+          <div class="flex flex-wrap gap-1 max-h-36 overflow-y-auto rounded-lg p-1 bg-slate-50">
+            ${filterSwatches(state.colorCat||'all').map(hex => `<button class="color-swatch w-5 h-5 rounded" style="background:${hex}" onclick="quickColor('${hex}')" title="${hex}" aria-label="${state.lang === 'ja' ? '色を適用' : '应用颜色'}: ${hex}"></button>`).join('')}
           </div>
         </div>
       </section>
@@ -3753,9 +3888,21 @@ function renderColorMgr(type, label, colors, L) {
             <button class="w-10 h-10 rounded-lg border-2 border-slate-200 shadow-lg hover:border-slate-300 hover:scale-105 transition-all" style="background:${c};box-shadow:0 2px 10px ${c}40" onclick="toggleEdit('${type}',${i})" aria-label="${state.lang==='ja'?'色を編集':'编辑颜色'}: ${c}"></button>
             ${colors.length > 1 ? `<button onclick="removeColor('${type}',${i})" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity" aria-label="${state.lang==='ja'?'この色を削除':'删除此颜色'}">×</button>` : ''}
             ${state.editColor === type + i ? `
-              <div class="absolute top-12 z-20 glass rounded-xl shadow-2xl p-3 border border-slate-200" style="min-width:180px;right:0;transform:translateX(min(0px, calc(100vw - 100% - 16px)))">
+              <div class="absolute top-12 z-20 glass rounded-xl shadow-2xl p-3 border border-slate-200" style="min-width:220px;right:0;transform:translateX(min(0px, calc(100vw - 100% - 16px)))">
                 <input type="color" value="${c}" onchange="updColor('${type}',${i},this.value)" class="w-full h-8 mb-2 rounded-lg">
-                <div class="grid grid-cols-5 gap-1">${SWATCHES.slice(0,15).map(hex => `<button class="color-swatch w-6 h-6 rounded-md" style="background:${hex}" onclick="updColor('${type}',${i},'${hex}');setState({editColor:null})"></button>`).join('')}</div>
+                <div class="flex flex-wrap gap-0.5 mb-1">
+                  ${[
+                    {label:state.lang==='ja'?'全':'全',key:'all'},
+                    {label:'⬜',key:'achro'},
+                    {label:'🔴',key:'pinkred'},
+                    {label:'🟠',key:'orange'},
+                    {label:'🟡',key:'yellow'},
+                    {label:'🟢',key:'green'},
+                    {label:'🔵',key:'blue'},
+                    {label:'🟣',key:'purple'},
+                  ].map(cat => `<button class="px-1 py-0 text-xs rounded ${(state.popupColorCat||'all')===cat.key?'bg-teal-600 text-white':'bg-slate-100 hover:bg-slate-200'}" onclick="event.stopPropagation();setState({popupColorCat:'${cat.key}'})">${cat.label}</button>`).join('')}
+                </div>
+                <div class="grid grid-cols-8 gap-0.5 max-h-32 overflow-y-auto">${filterSwatches(state.popupColorCat||'all').slice(0,200).map(hex => `<button class="color-swatch w-5 h-5 rounded" style="background:${hex}" onclick="updColor('${type}',${i},'${hex}');setState({editColor:null})"></button>`).join('')}</div>
               </div>
             ` : ''}
           </div>
